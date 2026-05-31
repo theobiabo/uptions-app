@@ -8,6 +8,7 @@ import {
 	workflowBlockKind,
 	workflowBlockTone,
 } from "@/packages/builder/builder-data.ts";
+import { getVenueConfig } from "@/packages/venues/venue-data.ts";
 
 type WorkflowNodeData = WorkflowBlock;
 
@@ -18,6 +19,7 @@ export type WorkflowNodeProps = NodeProps & {
 export function WorkflowNode({ data, selected }: WorkflowNodeProps) {
 	const tone = workflowBlockTone[data.kind];
 	const Icon = data.icon;
+	const venue = getVenueConfig(data.venue);
 	const hasTarget = data.kind !== workflowBlockKind.trigger;
 	const hasSource = data.kind !== workflowBlockKind.action;
 
@@ -42,7 +44,7 @@ export function WorkflowNode({ data, selected }: WorkflowNodeProps) {
 				</span>
 				<div className="min-w-0">
 					<Typography className="text-[10px] text-white/55" variant="caption">
-						{tone.label}
+						{tone.label} - {venue.label}
 					</Typography>
 					<Typography className="truncate text-white" variant="label">
 						{data.title}

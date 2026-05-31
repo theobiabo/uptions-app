@@ -1,6 +1,7 @@
 import { Wallet } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { useCurrentUser, useWalletLogin } from "@/hooks/use-auth.ts";
 import {
 	dashboardActions,
 	dashboardNavigationItems,
@@ -9,6 +10,11 @@ import Logo from "../misc/logo";
 
 export default function DashboardHeader() {
 	const NotificationsIcon = dashboardActions.notificationsIcon;
+	const { user } = useCurrentUser();
+	const walletLogin = useWalletLogin();
+	const walletLabel = user
+		? formatWallet(user.primary_wallet_address)
+		: dashboardActions.walletLabel;
 
 	return (
 		<header className="sticky top-0 z-30 border-b border-[var(--app-border)] bg-[var(--dashboard-bg)]/95 backdrop-blur">
@@ -46,12 +52,21 @@ export default function DashboardHeader() {
 						<NotificationsIcon className="size-4" />
 					</Button>
 					<ThemeToggle />
-					<Button className="h-9 bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
+					<Button
+						className="h-9 bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
+						disabled={walletLogin.isPending || Boolean(user)}
+						onClick={() => walletLogin.mutate()}
+						type="button"
+					>
 						<Wallet className="size-3.5" />
-						{dashboardActions.walletLabel}
+						{walletLogin.isPending ? "Connecting" : walletLabel}
 					</Button>
 				</div>
 			</div>
 		</header>
 	);
+}
+
+function formatWallet(address: string) {
+	return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }

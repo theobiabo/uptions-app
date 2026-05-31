@@ -20,19 +20,23 @@ import {
 	initialWorkflowNodes,
 	workflowBlocks,
 } from "@/packages/builder/builder-data.ts";
+import type { VenueId } from "@/packages/venues/venue-data.ts";
 
 import { WorkflowNode } from "./workflow-node.tsx";
 
 type WorkflowCanvasProps = {
 	onSelectBlock: (block?: WorkflowBlock) => void;
+	venue: VenueId;
 };
 
 type WorkflowNodeData = WorkflowBlock;
 
-export function WorkflowCanvas({ onSelectBlock }: WorkflowCanvasProps) {
+export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 	const wrapperRef = useRef<HTMLDivElement>(null);
-	const [reactFlowInstance, setReactFlowInstance] =
-		useState<ReactFlowInstance<WorkflowNodeData> | null>(null);
+	const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+		Node<WorkflowNodeData>,
+		Edge
+	> | null>(null);
 	const [nodes, setNodes, onNodesChange] = useNodesState<
 		Node<WorkflowNodeData>
 	>(initialWorkflowNodes.map((node) => ({ ...node })));
@@ -81,12 +85,12 @@ export function WorkflowCanvas({ onSelectBlock }: WorkflowCanvasProps) {
 				id: `${block.id}-${crypto.randomUUID()}`,
 				type: "workflowBlock",
 				position,
-				data: block,
+				data: { ...block, venue },
 			};
 
 			setNodes((currentNodes) => currentNodes.concat(node));
 		},
-		[reactFlowInstance, setNodes],
+		[reactFlowInstance, setNodes, venue],
 	);
 
 	return (

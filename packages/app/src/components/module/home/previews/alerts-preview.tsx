@@ -43,7 +43,7 @@ export function AlertsPreview() {
 										{item.description}
 									</p>
 								</div>
-								{item.active ? (
+								{"active" in item && item.active ? (
 									<span className="size-3 shrink-0 bg-success" />
 								) : null}
 							</li>

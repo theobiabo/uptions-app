@@ -2,13 +2,39 @@ import { ChevronDown, Play, Redo2, Undo2, Wallet, X } from "lucide-react";
 
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { VenueId } from "@/packages/venues/venue-data.ts";
+import { venues } from "@/packages/venues/venue-data.ts";
 
-export function WorkflowToolbar() {
+type WorkflowToolbarProps = {
+	onVenueChange: (venue: VenueId) => void;
+	venue: VenueId;
+};
+
+export function WorkflowToolbar({
+	onVenueChange,
+	venue,
+}: WorkflowToolbarProps) {
 	return (
-		<header className="flex h-[68px] shrink-0 items-center justify-between border-b border-white/10 bg-builder-panel px-5">
-			<Typography className="text-white" variant="h3">
-				Untitled Workflow
-			</Typography>
+		<header className="flex h-[68px] shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-builder-panel px-5">
+			<div className="min-w-0">
+				<Typography className="text-white" variant="h3">
+					Untitled Workflow
+				</Typography>
+				<label className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-white/45">
+					Market
+					<select
+						className="bg-transparent text-xs normal-case tracking-normal text-white outline-none"
+						onChange={(event) => onVenueChange(event.target.value as VenueId)}
+						value={venue}
+					>
+						{venues.map((item) => (
+							<option key={item.id} value={item.id}>
+								{item.label}
+							</option>
+						))}
+					</select>
+				</label>
+			</div>
 
 			<div className="flex items-center gap-6">
 				<div className="hidden items-center gap-4 text-white/60 sm:flex">
