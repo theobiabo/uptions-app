@@ -48,7 +48,7 @@ export function BuilderPreview() {
 									<Icon className="size-2.5" />
 								</span>
 								<div className="min-w-0">
-									{node.eyebrow ? (
+									{"eyebrow" in node && node.eyebrow ? (
 										<p className="mb-1 text-[9px] font-bold leading-none text-info">
 											{node.eyebrow}
 										</p>

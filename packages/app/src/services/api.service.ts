@@ -4,6 +4,7 @@ import type {
 	HttpMethod,
 	RequestOptions,
 } from "@/packages/types/api.types.ts";
+import { getAuthToken } from "@/services/auth-token.service.ts";
 
 export class ApiService {
 	private readonly baseUrl: string;
@@ -165,5 +166,6 @@ export class ApiService {
 
 export const uptionsRequest = new ApiService({
 	baseUrl: import.meta.env.VITE_API_BASE_URL ?? "",
+	getAccessToken: getAuthToken,
 	headers: {},
 });

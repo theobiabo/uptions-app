@@ -6,6 +6,8 @@ import {
 	TrendingUp,
 	Zap,
 } from "lucide-react";
+import type { VenueId } from "@/packages/venues/venue-data.ts";
+import { defaultVenueId } from "@/packages/venues/venue-data.ts";
 
 export const workflowBlockKind = {
 	trigger: "trigger",
@@ -41,6 +43,7 @@ export const workflowBlocks = [
 		title: "Price Change",
 		description: "When price moves by %",
 		value: "BTC > 5%",
+		venue: defaultVenueId,
 		icon: Zap,
 	},
 	{
@@ -49,6 +52,7 @@ export const workflowBlocks = [
 		title: "Volume Spike",
 		description: "Volume exceeds threshold",
 		value: "Volume > 20%",
+		venue: defaultVenueId,
 		icon: Zap,
 	},
 	{
@@ -57,6 +61,7 @@ export const workflowBlocks = [
 		title: "Time Trigger",
 		description: "At specific time",
 		value: "Every 1 hour",
+		venue: defaultVenueId,
 		icon: Clock3,
 	},
 	{
@@ -65,6 +70,7 @@ export const workflowBlocks = [
 		title: "Price Above",
 		description: "If price > value",
 		value: "$95,000",
+		venue: defaultVenueId,
 		icon: TrendingUp,
 	},
 	{
@@ -73,6 +79,7 @@ export const workflowBlocks = [
 		title: "Price Below",
 		description: "If price < value",
 		value: "$88,000",
+		venue: defaultVenueId,
 		icon: TrendingUp,
 	},
 	{
@@ -81,6 +88,7 @@ export const workflowBlocks = [
 		title: "Position Size",
 		description: "Position meets criteria",
 		value: "$1,000 max",
+		venue: defaultVenueId,
 		icon: DollarSign,
 	},
 	{
@@ -89,6 +97,7 @@ export const workflowBlocks = [
 		title: "Buy",
 		description: "Execute buy order",
 		value: "Execute buy order",
+		venue: defaultVenueId,
 		icon: ShoppingCart,
 	},
 	{
@@ -97,6 +106,7 @@ export const workflowBlocks = [
 		title: "Sell",
 		description: "Execute sell order",
 		value: "Execute sell order",
+		venue: defaultVenueId,
 		icon: ShoppingCart,
 	},
 	{
@@ -105,11 +115,14 @@ export const workflowBlocks = [
 		title: "Alert",
 		description: "Send notification",
 		value: "Send notification",
+		venue: defaultVenueId,
 		icon: Search,
 	},
 ] as const;
 
-export type WorkflowBlock = (typeof workflowBlocks)[number];
+export type WorkflowBlock = Omit<(typeof workflowBlocks)[number], "venue"> & {
+	venue: VenueId;
+};
 
 export const workflowBlockGroups = [
 	{
