@@ -18,7 +18,7 @@ export function Homepage() {
 
 function HeroSection() {
 	return (
-		<section className="border-[var(--app-border)] h-full mt-[3rem] bg-[var(--app-surface)]">
+		<section className="border-[var(--app-border)] h-full mt-[3rem]">
 			<div className="mx-auto flex min-h-[490px] max-w-[1040px] flex-col items-center justify-center px-6 py-20 text-center">
 				<Typography
 					className="max-w-[710px] text-[var(--app-fg)] font-normal"

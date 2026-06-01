@@ -1,7 +1,5 @@
 import { Moon, Sun } from "lucide-react";
-
 import { Button } from "@/components/ui/button.tsx";
-
 import { useTheme } from "./theme-provider.tsx";
 
 export function ThemeToggle() {
@@ -17,7 +15,7 @@ export function ThemeToggle() {
 			type="button"
 			variant="ghost"
 		>
-			<Icon className="size-4" />
+			<Icon className="size-4 text-black dark:text-white" />
 		</Button>
 	);
 }
