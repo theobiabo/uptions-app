@@ -15,15 +15,15 @@ export function WorkflowToolbar({
 	venue,
 }: WorkflowToolbarProps) {
 	return (
-		<header className="flex h-[68px] shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-builder-panel px-5">
+		<header className="flex h-[68px] shrink-0 items-center justify-between gap-4 border-b border-[var(--app-border)] bg-builder-panel px-5">
 			<div className="min-w-0">
-				<Typography className="text-white" variant="h3">
+				<Typography className="text-[var(--app-fg)]" variant="h3">
 					Untitled Workflow
 				</Typography>
-				<label className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-white/45">
+				<label className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
 					Market
 					<select
-						className="bg-transparent text-xs normal-case tracking-normal text-white outline-none"
+						className="bg-transparent text-xs normal-case tracking-normal text-[var(--app-fg)] outline-none"
 						onChange={(event) => onVenueChange(event.target.value as VenueId)}
 						value={venue}
 					>
@@ -37,10 +37,10 @@ export function WorkflowToolbar({
 			</div>
 
 			<div className="flex items-center gap-6">
-				<div className="hidden items-center gap-4 text-white/60 sm:flex">
+				<div className="hidden items-center gap-4 text-[var(--app-muted-fg)] sm:flex">
 					<Button
 						aria-label="Undo"
-						className="size-8  border-0 bg-transparent text-white/70 hover:bg-white/8 hover:text-white"
+						className="size-8 border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
 						size="icon"
 						type="button"
 						variant="ghost"
@@ -49,7 +49,7 @@ export function WorkflowToolbar({
 					</Button>
 					<Button
 						aria-label="Redo"
-						className="size-8  border-0 bg-transparent text-white/40 hover:bg-white/8 hover:text-white"
+						className="size-8 border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
 						size="icon"
 						type="button"
 						variant="ghost"
@@ -59,7 +59,7 @@ export function WorkflowToolbar({
 				</div>
 
 				<Button
-					className="hidden h-9 gap-2  border-0 bg-transparent px-2 text-sm font-medium text-white hover:bg-white/8 md:inline-flex"
+					className="hidden h-9 gap-2 border-0 bg-transparent px-2 text-sm font-medium text-[var(--app-fg)] hover:bg-[var(--app-muted)] md:inline-flex"
 					type="button"
 					variant="ghost"
 				>
@@ -68,7 +68,7 @@ export function WorkflowToolbar({
 				</Button>
 
 				<Button
-					className="h-9  border-0 bg-transparent px-2 text-sm font-medium text-white hover:bg-white/8"
+					className="h-9 border-0 bg-transparent px-2 text-sm font-medium text-[var(--app-fg)] hover:bg-[var(--app-muted)]"
 					type="button"
 					variant="ghost"
 				>
@@ -83,7 +83,7 @@ export function WorkflowToolbar({
 
 				<a
 					aria-label="Close builder"
-					className="hidden text-white/60 no-underline hover:text-white sm:block"
+					className="hidden text-[var(--app-muted-fg)] no-underline hover:text-[var(--app-fg)] sm:block"
 					href="/dashboard"
 				>
 					<X className="size-5" />

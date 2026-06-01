@@ -1,8 +1,17 @@
-import Homepage from '@/pages'
-import { createFileRoute } from '@tanstack/react-router'
+import { Suspense, lazy } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Loader } from '@/components/misc/load';
 
-export const Route = createFileRoute('/')({ component: Home })
+const Homepage = lazy(() => import('@/pages'));
+
+export const Route = createFileRoute('/')({
+  component: Home,
+});
 
 function Home() {
-  return <Homepage/>
+  return (
+    <Suspense fallback={<Loader />}>
+      <Homepage />
+    </Suspense>
+  );
 }

@@ -14,6 +14,7 @@ import {
 import type { DragEvent } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { useTheme } from "@/components/theme/theme-provider.tsx";
 import type { WorkflowBlock } from "@/packages/builder/builder-data.ts";
 import {
 	initialWorkflowEdges,
@@ -33,6 +34,7 @@ type WorkflowNodeData = WorkflowBlock;
 
 export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 	const wrapperRef = useRef<HTMLDivElement>(null);
+	const { theme } = useTheme();
 	const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
 		Node<WorkflowNodeData>,
 		Edge
@@ -96,14 +98,15 @@ export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 	return (
 		<div
 			aria-label="Workflow canvas"
-			className="min-h-0 flex-1 bg-builder-bg"
+			className="relative min-h-0 flex-1 overflow-hidden bg-transparent"
 			onDragOver={onDragOver}
 			onDrop={onDrop}
 			ref={wrapperRef}
 			role="application"
 		>
 			<ReactFlow
-				colorMode="dark"
+				className="relative z-10"
+				colorMode={theme}
 				defaultViewport={{ x: 80, y: 60, zoom: 1.05 }}
 				edges={edges}
 				fitView
@@ -120,8 +123,8 @@ export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 				proOptions={{ hideAttribution: true }}
 			>
 				<Background
-					bgColor="var(--builder-bg)"
-					color="var(--builder-panel)"
+					bgColor="transparent"
+					color="var(--app-border)"
 					gap={16}
 					size={1}
 				/>

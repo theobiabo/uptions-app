@@ -1,0 +1,26 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="630" fill="#F5F1EA"/>
+<path d="M0 0H1200V630H0V0Z" fill="url(#grid)"/>
+<rect x="-130" y="112" width="420" height="420" transform="rotate(6 -130 112)" fill="url(#orange-check)" opacity="0.5"/>
+<rect x="884" y="56" width="430" height="430" transform="rotate(-6 884 56)" fill="url(#black-check)" opacity="0.32"/>
+<path d="M92 144H1108" stroke="#111111" stroke-opacity="0.1"/>
+<path d="M190 494H1010" stroke="#FF4F00" stroke-opacity="0.42"/>
+<text x="96" y="118" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="800">uptions</text>
+<circle cx="224" cy="83" r="8" fill="#FF4F00"/>
+<text x="96" y="296" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800" letter-spacing="-5">Automate prediction</text>
+<text x="96" y="392" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800" letter-spacing="-5">market strategies</text>
+<text x="100" y="466" fill="#6B655E" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="500">Wallet identity, connected markets, and workflow automation.</text>
+<rect x="96" y="514" width="156" height="58" fill="#FF4F00"/>
+<text x="126" y="552" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Uptions</text>
+<defs>
+<pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+<path d="M72 0H0V72" stroke="#111111" stroke-opacity="0.035"/>
+</pattern>
+<pattern id="orange-check" width="32" height="32" patternUnits="userSpaceOnUse">
+<path d="M0 0H16V16H0V0ZM16 16H32V32H16V16Z" fill="#FF4F00"/>
+</pattern>
+<pattern id="black-check" width="36" height="36" patternUnits="userSpaceOnUse">
+<path d="M0 0H18V18H0V0ZM18 18H36V36H18V18Z" fill="#111111"/>
+</pattern>
+</defs>
+</svg>

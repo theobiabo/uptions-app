@@ -30,8 +30,8 @@
   --warning-foreground: #111111;
   --violet: #8759f4;
   --violet-foreground: #ffffff;
-  --builder-bg: #06070a;
-  --builder-panel: #111111;
+  --builder-bg: #f7f7f3;
+  --builder-panel: #ffffff;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
