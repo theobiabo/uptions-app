@@ -3,10 +3,17 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { ReactNode } from "react";
 
+import { LoaderScreen } from "@/components/misc/loader-screen.tsx";
 import { ThemeProvider } from "@/components/theme/theme-provider.tsx";
 import { QueryProvider } from "@/providers/query-provider.tsx";
 
 import appCss from "../styles.css?url";
+
+const siteUrl = import.meta.env.VITE_PUBLIC_SITE_URL ?? "https://uptions.app";
+const siteTitle = "Uptions";
+const siteDescription =
+	"Automate prediction market strategies with wallet identity, connected markets, and workflow automation.";
+const ogImageUrl = new URL("/og-image.svg", siteUrl).toString();
 
 const themeScript = `
 (function () {
@@ -29,6 +36,7 @@ const themeScript = `
 `;
 
 export const Route = createRootRoute({
+	pendingComponent: LoaderScreen,
 	head: () => ({
 		meta: [
 			{
@@ -39,10 +47,83 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
+				name: "description",
+				content: siteDescription,
+			},
+			{
 				title: "Uptions",
+			},
+			{
+				property: "og:type",
+				content: "website",
+			},
+			{
+				property: "og:site_name",
+				content: siteTitle,
+			},
+			{
+				property: "og:title",
+				content: siteTitle,
+			},
+			{
+				property: "og:description",
+				content: siteDescription,
+			},
+			{
+				property: "og:url",
+				content: siteUrl,
+			},
+			{
+				property: "og:image",
+				content: ogImageUrl,
+			},
+			{
+				property: "og:image:width",
+				content: "1200",
+			},
+			{
+				property: "og:image:height",
+				content: "630",
+			},
+			{
+				property: "og:image:alt",
+				content: "Uptions prediction market automation dashboard",
+			},
+			{
+				name: "twitter:card",
+				content: "summary_large_image",
+			},
+			{
+				name: "twitter:title",
+				content: siteTitle,
+			},
+			{
+				name: "twitter:description",
+				content: siteDescription,
+			},
+			{
+				name: "twitter:image",
+				content: ogImageUrl,
+			},
+			{
+				name: "theme-color",
+				content: "#FF4F00",
 			},
 		],
 		links: [
+			{
+				rel: "icon",
+				type: "image/svg+xml",
+				href: "/app-icon.svg",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/app-icon.svg",
+			},
+			{
+				rel: "manifest",
+				href: "/manifest.json",
+			},
 			{
 				rel: "stylesheet",
 				href: appCss,

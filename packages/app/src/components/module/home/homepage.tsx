@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ApiError } from "@/components/errors/api.error.ts";
 import SiteHeader from "@/components/headers/index-header.tsx";
+import { CheckerBackground } from "@/components/misc/checker-background.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { useJoinWaitlist } from "@/hooks/use-join-waitlist.ts";
@@ -18,8 +19,9 @@ export function Homepage() {
 
 function HeroSection() {
 	return (
-		<section className="border-[var(--app-border)] h-full mt-[3rem] bg-[var(--app-surface)]">
-			<div className="mx-auto flex min-h-[490px] max-w-[1040px] flex-col items-center justify-center px-6 py-20 text-center">
+		<section className="relative mt-[3rem] min-h-[calc(100vh-7.75rem)] overflow-hidden border-[var(--app-border)]">
+			<CheckerBackground />
+			<div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1040px] flex-col items-center justify-center px-6 py-20 text-center">
 				<Typography
 					className="max-w-[710px] text-[var(--app-fg)] font-normal"
 					variant="hero"

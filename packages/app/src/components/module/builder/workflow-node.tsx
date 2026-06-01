@@ -33,20 +33,23 @@ export function WorkflowNode({ data, selected }: WorkflowNodeProps) {
 		>
 			{hasTarget ? (
 				<Handle
-					className="!size-3 !border-2 !border-app-inverse !bg-dashboard-bg"
+					className="!size-3 !border-2 !border-app-inverse !bg-[var(--app-bg)]"
 					position={Position.Left}
 					type="target"
 				/>
 			) : null}
-			<div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+			<div className="flex items-center gap-3 border-b border-[var(--app-border)] px-4 py-3">
 				<span className={cn("grid size-5 place-items-center ", tone.icon)}>
 					<Icon className="size-3.5" />
 				</span>
 				<div className="min-w-0">
-					<Typography className="text-[10px] text-white/55" variant="caption">
+					<Typography
+						className="text-[10px] text-[var(--app-muted-fg)]"
+						variant="caption"
+					>
 						{tone.label} - {venue.label}
 					</Typography>
-					<Typography className="truncate text-white" variant="label">
+					<Typography className="truncate text-[var(--app-fg)]" variant="label">
 						{data.title}
 					</Typography>
 				</div>
@@ -54,7 +57,10 @@ export function WorkflowNode({ data, selected }: WorkflowNodeProps) {
 					<span className="ml-auto size-1.5 bg-success" />
 				) : null}
 			</div>
-			<Typography className="px-4 py-3 text-white/65" variant="caption">
+			<Typography
+				className="px-4 py-3 text-[var(--app-muted-fg)]"
+				variant="caption"
+			>
 				{data.value}
 			</Typography>
 			{hasSource ? (
