@@ -97,7 +97,7 @@ export class ApiService {
 	}
 
 	private buildUrl(path: string, query?: RequestOptions["query"]) {
-		const url = new URL(path, this.baseUrl || window.location.origin);
+		const url = new URL(path, this.baseUrl || import.meta.env.VITE_BASE_URL);
 
 		for (const [key, rawValue] of Object.entries(query ?? {})) {
 			const values = Array.isArray(rawValue) ? rawValue : [rawValue];
