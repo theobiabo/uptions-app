@@ -9,7 +9,16 @@ const apiProxyTarget =
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
-	plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+	plugins: [
+		devtools(),
+		tailwindcss(),
+		tanstackStart({
+			spa: {
+				enabled: true,
+			},
+		}),
+		viteReact(),
+	],
 	server: {
 		proxy: {
 			"/api": {
