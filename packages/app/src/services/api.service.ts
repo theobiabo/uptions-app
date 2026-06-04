@@ -13,7 +13,7 @@ export class ApiService {
 	private readonly timeoutMs: number;
 
 	constructor(config: ApiServiceConfig = {}) {
-		this.baseUrl = config.baseUrl ?? "";
+		this.baseUrl = config.baseUrl ?? import.meta.env.VITE_BASE_URL;
 		this.defaultHeaders = config.headers ?? {};
 		this.getAccessToken = config.getAccessToken;
 		this.timeoutMs = config.timeoutMs ?? 30_000;
