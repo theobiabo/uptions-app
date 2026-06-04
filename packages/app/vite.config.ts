@@ -15,6 +15,9 @@ const config = defineConfig({
 		tanstackStart({
 			spa: {
 				enabled: true,
+				prerender: {
+					outputPath: "/index",
+				},
 			},
 		}),
 		viteReact(),
