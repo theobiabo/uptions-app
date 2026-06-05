@@ -13,7 +13,7 @@ export class ApiService {
 	private readonly timeoutMs: number;
 
 	constructor(config: ApiServiceConfig = {}) {
-		this.baseUrl = import.meta.env.VITE_BASE_URL;
+		this.baseUrl = config.baseUrl ?? "";
 		this.defaultHeaders = config.headers ?? {};
 		this.getAccessToken = config.getAccessToken;
 		this.timeoutMs = config.timeoutMs ?? 30_000;
@@ -97,7 +97,9 @@ export class ApiService {
 	}
 
 	private buildUrl(path: string, query?: RequestOptions["query"]) {
-		const url = new URL(path, this.baseUrl || import.meta.env.VITE_BASE_URL);
+		const url = this.baseUrl
+			? new URL(path, this.baseUrl)
+			: new URL(path, window.location.origin);
 
 		for (const [key, rawValue] of Object.entries(query ?? {})) {
 			const values = Array.isArray(rawValue) ? rawValue : [rawValue];
@@ -109,7 +111,7 @@ export class ApiService {
 			}
 		}
 
-		return url.toString();
+		return this.baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 	}
 
 	private serializeBody(body: unknown) {
