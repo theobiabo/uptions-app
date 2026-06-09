@@ -1,12 +1,15 @@
-import type { FormEvent } from "react";
 import { useState } from "react";
-import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
-import { ApiError } from "@/components/errors/api.error.ts";
+import { AuthPanel } from "@/components/auth/auth-panel.tsx";
 import SiteHeader from "@/components/headers/index-header.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { useJoinWaitlist } from "@/hooks/use-join-waitlist.ts";
+import {
+	Dialog,
+	DialogContent,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog.tsx";
 
 export function Homepage() {
 	return (
@@ -45,56 +48,20 @@ function HeroSection() {
 }
 
 function WaitlistDialog() {
-	const [email, setEmail] = useState("");
-	const waitlist = useJoinWaitlist();
-
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		waitlist.mutate({ email });
-	};
-
-	const errorMessage =
-		waitlist.error instanceof ApiError
-			? waitlist.error.message
-			: waitlist.error
-				? "Unable to join waitlist"
-				: null;
+	const [authOpen, setAuthOpen] = useState(false);
 
 	return (
-		<CustomModal
-			description="Get early access when Uptions opens."
-			title="Join the waitlist"
-			trigger={<Button>Join Waitlist</Button>}
-		>
-			<form className="grid gap-4" onSubmit={handleSubmit}>
-				<label className="grid gap-2">
-					<span className="text-sm font-medium text-app-fg">Email</span>
-					<input
-						className="h-11 border border-app-border bg-app-bg px-3 text-sm text-app-fg outline-none transition placeholder:text-app-muted-fg focus:border-primary"
-						onChange={(event) => {
-							setEmail(event.target.value);
-							waitlist.reset();
-						}}
-						placeholder="you@example.com"
-						required
-						type="email"
-						value={email}
-					/>
-				</label>
-				{errorMessage ? (
-					<Typography className="text-danger" variant="caption">
-						{errorMessage}
-					</Typography>
-				) : null}
-				{waitlist.isSuccess ? (
-					<Typography className="text-success" variant="caption">
-						You are on the waitlist.
-					</Typography>
-				) : null}
-				<Button className="h-11" disabled={waitlist.isPending} type="submit">
-					{waitlist.isPending ? "Joining..." : "Request Access"}
-				</Button>
-			</form>
-		</CustomModal>
+		<Dialog onOpenChange={setAuthOpen} open={authOpen}>
+			<DialogTrigger asChild>
+				<Button className="h-11 px-6">Get started</Button>
+			</DialogTrigger>
+			<DialogContent className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white">
+				<DialogTitle className="sr-only">Uptions account</DialogTitle>
+				<AuthPanel
+					className="border-0"
+					onAuthenticated={() => setAuthOpen(false)}
+				/>
+			</DialogContent>
+		</Dialog>
 	);
 }

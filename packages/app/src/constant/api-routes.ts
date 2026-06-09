@@ -4,9 +4,9 @@ const route = (path: string) => `${API_VERSION}${path}`;
 
 export const API_ROUTES = {
 	auth: {
-		challenge: route("/auth/challenge"),
+		login: route("/auth/login"),
 		me: route("/auth/me"),
-		verify: route("/auth/verify"),
+		signup: route("/auth/signup"),
 	},
 	polymarket: {
 		markets: route("/polymarket/markets"),

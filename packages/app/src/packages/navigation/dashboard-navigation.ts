@@ -19,6 +19,6 @@ export const dashboardNavigationItems = [
 
 export const dashboardActions = {
 	notificationsLabel: "Notifications",
-	walletLabel: "Connect Wallet",
+	accountLabel: "Sign in",
 	notificationsIcon: Bell,
 } as const;

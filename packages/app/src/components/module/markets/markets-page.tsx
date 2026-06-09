@@ -1,15 +1,12 @@
 import { Bolt, Search } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
+import { AuthPanel } from "@/components/auth/auth-panel.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
 import { ViewToggle } from "@/components/module/app-shell/product-shell.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import {
-	useConnectPolymarket,
-	useCurrentUser,
-	useWalletLogin,
-} from "@/hooks/use-auth.ts";
+import { useConnectPolymarket, useCurrentUser } from "@/hooks/use-auth.ts";
 import { usePolymarketMarkets } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
 import { marketCategories } from "@/packages/markets/markets-data.ts";
@@ -217,7 +214,6 @@ function PolymarketConnectionForm({
 }: {
 	isAuthenticated: boolean;
 }) {
-	const walletLogin = useWalletLogin();
 	const connectPolymarket = useConnectPolymarket();
 	const [form, setForm] = useState<ConnectPolymarketRequest>({
 		api_key: "",
@@ -252,24 +248,7 @@ function PolymarketConnectionForm({
 	}
 
 	if (!isAuthenticated) {
-		return (
-			<div className="border border-white/10 bg-app-card p-5">
-				<Typography className="text-white" variant="h3">
-					Connect Wallet
-				</Typography>
-				<Typography className="mt-2 text-white/55" variant="bodySm">
-					Sign in with your wallet before saving Polymarket credentials.
-				</Typography>
-				<Button
-					className="mt-5 h-10 bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-					disabled={walletLogin.isPending}
-					onClick={() => walletLogin.mutate()}
-					type="button"
-				>
-					{walletLogin.isPending ? "Connecting" : "Connect Wallet"}
-				</Button>
-			</div>
-		);
+		return <AuthPanel />;
 	}
 
 	return (
@@ -285,6 +264,12 @@ function PolymarketConnectionForm({
 					Paste the API credentials created from Polymarket L1 auth.
 				</Typography>
 			</div>
+			<ConnectionInput
+				label="Polymarket account address"
+				onChange={(value) => updateField("account_identifier", value)}
+				required
+				value={form.account_identifier ?? ""}
+			/>
 			<ConnectionInput
 				label="API key"
 				onChange={(value) => updateField("api_key", value)}

@@ -1,40 +1,33 @@
 import type { VenueId } from "@/packages/venues/venue-data.ts";
 
-export type CreateChallengeRequest = {
-	wallet_address: string;
-};
-
-export type CreateChallengeResponse = {
-	wallet_address: string;
-	nonce: string;
-	message: string;
-	expires_at: number;
-};
-
-export type VerifyChallengeRequest = {
-	wallet_address: string;
-	signature: string;
+export type EmailAuthRequest = {
+	email: string;
+	password: string;
 };
 
 export type VenueConnection = {
 	id: string;
 	venue: VenueId;
+	auth_type: string;
 	account_identifier: string;
 	enabled: boolean;
 	limits: Record<string, unknown>;
+	permissions: Record<string, unknown>;
+	status: string;
 };
 
 export type AuthUser = {
 	id: string;
-	primary_wallet_address: string;
-	wallet_address: string;
+	primary_wallet_address: string | null;
+	wallet_address: string | null;
 	email: string | null;
 	venue_connections: VenueConnection[];
 };
 
-export type VerifyChallengeResponse = {
+export type AuthSessionResponse = {
 	access_token: string;
 	token_type: "Bearer";
+	expires_at: number;
 	user: AuthUser;
 };
 
@@ -46,4 +39,5 @@ export type ConnectPolymarketRequest = {
 	funder?: string;
 	signature_type?: number;
 	limits?: Record<string, unknown>;
+	permissions?: Record<string, unknown>;
 };

@@ -1,7 +1,15 @@
-import { Wallet } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
+import { useState } from "react";
+import { AuthPanel } from "@/components/auth/auth-panel";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { useCurrentUser, useWalletLogin } from "@/hooks/use-auth.ts";
+import {
+	Dialog,
+	DialogContent,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
 	dashboardActions,
 	dashboardNavigationItems,
@@ -11,10 +19,9 @@ import Logo from "../misc/logo";
 export default function DashboardHeader() {
 	const NotificationsIcon = dashboardActions.notificationsIcon;
 	const { user } = useCurrentUser();
-	const walletLogin = useWalletLogin();
-	const walletLabel = user
-		? formatWallet(user.primary_wallet_address)
-		: dashboardActions.walletLabel;
+	const logout = useLogout();
+	const [authOpen, setAuthOpen] = useState(false);
+	const accountLabel = user?.email ?? "Sign in";
 
 	return (
 		<header className="sticky top-0 z-30 border-b border-[var(--app-border)] bg-[var(--dashboard-bg)]/95 backdrop-blur">
@@ -52,21 +59,45 @@ export default function DashboardHeader() {
 						<NotificationsIcon className="size-4" />
 					</Button>
 					<ThemeToggle />
-					<Button
-						className="h-9 bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
-						disabled={walletLogin.isPending || Boolean(user)}
-						onClick={() => walletLogin.mutate()}
-						type="button"
-					>
-						<Wallet className="size-3.5" />
-						{walletLogin.isPending ? "Connecting" : walletLabel}
-					</Button>
+					{user ? (
+						<div className="flex items-center gap-2">
+							<div className="hidden h-9 max-w-[220px] items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-white/70 sm:flex">
+								<UserRound className="size-3.5 text-primary" />
+								<span className="truncate">{accountLabel}</span>
+							</div>
+							<Button
+								aria-label="Sign out"
+								className="size-9 bg-transparent text-white/60 hover:bg-white/8 hover:text-white"
+								onClick={logout}
+								size="icon"
+								type="button"
+								variant="ghost"
+							>
+								<LogOut className="size-4" />
+							</Button>
+						</div>
+					) : (
+						<Dialog onOpenChange={setAuthOpen} open={authOpen}>
+							<DialogTrigger asChild>
+								<Button
+									className="h-9 bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+									type="button"
+								>
+									<UserRound className="size-3.5" />
+									Sign in
+								</Button>
+							</DialogTrigger>
+							<DialogContent className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white">
+								<DialogTitle className="sr-only">Uptions account</DialogTitle>
+								<AuthPanel
+									className="border-0"
+									onAuthenticated={() => setAuthOpen(false)}
+								/>
+							</DialogContent>
+						</Dialog>
+					)}
 				</div>
 			</div>
 		</header>
 	);
-}
-
-function formatWallet(address: string) {
-	return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }

@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/components/errors/api.error.ts";
-import type { ConnectPolymarketRequest } from "@/packages/types/auth.types.ts";
+import type {
+	ConnectPolymarketRequest,
+	EmailAuthRequest,
+} from "@/packages/types/auth.types.ts";
 import { authService } from "@/services/auth.service.ts";
 import { clearAuthToken, getAuthToken } from "@/services/auth-token.service.ts";
 
@@ -21,11 +24,26 @@ export function useCurrentUser() {
 	};
 }
 
-export function useWalletLogin() {
+export function useEmailSignup() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: () => authService.loginWithWallet(),
+		mutationFn: (payload: EmailAuthRequest) => authService.signup(payload),
+		onSuccess: (user) => {
+			queryClient.setQueryData(authQueryKey, {
+				data: user,
+				message: "Current user fetched successfully",
+				status_code: 200,
+			});
+		},
+	});
+}
+
+export function useEmailLogin() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: EmailAuthRequest) => authService.login(payload),
 		onSuccess: (user) => {
 			queryClient.setQueryData(authQueryKey, {
 				data: user,
