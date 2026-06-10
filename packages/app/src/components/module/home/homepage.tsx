@@ -1,15 +1,7 @@
-import { useState } from "react";
-import { AuthPanel } from "@/components/auth/auth-panel.tsx";
+import { LaunchDialog } from "@/components/auth/launch-dialog.tsx";
 import SiteHeader from "@/components/headers/index-header.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog.tsx";
 
 export function Homepage() {
 	return (
@@ -40,38 +32,9 @@ function HeroSection() {
 					speed, and reliability, all within the our platform.
 				</Typography>
 				<div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-					<WaitlistDialog />
+					<LaunchDialog buttonClassName="h-11 px-6" />
 				</div>
 			</div>
 		</section>
-	);
-}
-
-function WaitlistDialog() {
-	const params =
-		typeof window === "undefined"
-			? new URLSearchParams()
-			: new URLSearchParams(window.location.search);
-	const verificationToken = params.get("verify_email");
-	const resetToken = params.get("reset_password");
-	const [authOpen, setAuthOpen] = useState(
-		Boolean(verificationToken || resetToken),
-	);
-
-	return (
-		<Dialog onOpenChange={setAuthOpen} open={authOpen}>
-			<DialogTrigger asChild>
-				<Button className="h-11 px-6">Get started</Button>
-			</DialogTrigger>
-			<DialogContent className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white">
-				<DialogTitle className="sr-only">Uptions account</DialogTitle>
-				<AuthPanel
-					className="border-0"
-					onAuthenticated={() => setAuthOpen(false)}
-					resetToken={resetToken}
-					verificationToken={verificationToken}
-				/>
-			</DialogContent>
-		</Dialog>
 	);
 }
