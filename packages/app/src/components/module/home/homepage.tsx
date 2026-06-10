@@ -48,7 +48,15 @@ function HeroSection() {
 }
 
 function WaitlistDialog() {
-	const [authOpen, setAuthOpen] = useState(false);
+	const params =
+		typeof window === "undefined"
+			? new URLSearchParams()
+			: new URLSearchParams(window.location.search);
+	const verificationToken = params.get("verify_email");
+	const resetToken = params.get("reset_password");
+	const [authOpen, setAuthOpen] = useState(
+		Boolean(verificationToken || resetToken),
+	);
 
 	return (
 		<Dialog onOpenChange={setAuthOpen} open={authOpen}>
@@ -60,6 +68,8 @@ function WaitlistDialog() {
 				<AuthPanel
 					className="border-0"
 					onAuthenticated={() => setAuthOpen(false)}
+					resetToken={resetToken}
+					verificationToken={verificationToken}
 				/>
 			</DialogContent>
 		</Dialog>

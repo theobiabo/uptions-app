@@ -5,6 +5,19 @@ export type EmailAuthRequest = {
 	password: string;
 };
 
+export type ForgotPasswordRequest = {
+	email: string;
+};
+
+export type ResetPasswordRequest = {
+	token: string;
+	password: string;
+};
+
+export type VerifyEmailRequest = {
+	token: string;
+};
+
 export type VenueConnection = {
 	id: string;
 	venue: VenueId;
@@ -21,6 +34,7 @@ export type AuthUser = {
 	primary_wallet_address: string | null;
 	wallet_address: string | null;
 	email: string | null;
+	email_verified: boolean;
 	venue_connections: VenueConnection[];
 };
 

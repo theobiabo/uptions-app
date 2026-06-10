@@ -3,6 +3,9 @@ import { ApiError } from "@/components/errors/api.error.ts";
 import type {
 	ConnectPolymarketRequest,
 	EmailAuthRequest,
+	ForgotPasswordRequest,
+	ResetPasswordRequest,
+	VerifyEmailRequest,
 } from "@/packages/types/auth.types.ts";
 import { authService } from "@/services/auth.service.ts";
 import { clearAuthToken, getAuthToken } from "@/services/auth-token.service.ts";
@@ -44,6 +47,45 @@ export function useEmailLogin() {
 
 	return useMutation({
 		mutationFn: (payload: EmailAuthRequest) => authService.login(payload),
+		onSuccess: (user) => {
+			queryClient.setQueryData(authQueryKey, {
+				data: user,
+				message: "Current user fetched successfully",
+				status_code: 200,
+			});
+		},
+	});
+}
+
+export function useVerifyEmail() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: VerifyEmailRequest) =>
+			authService.verifyEmail(payload),
+		onSuccess: (user) => {
+			queryClient.setQueryData(authQueryKey, {
+				data: user,
+				message: "Current user fetched successfully",
+				status_code: 200,
+			});
+		},
+	});
+}
+
+export function useForgotPassword() {
+	return useMutation({
+		mutationFn: (payload: ForgotPasswordRequest) =>
+			authService.forgotPassword(payload),
+	});
+}
+
+export function useResetPassword() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: ResetPasswordRequest) =>
+			authService.resetPassword(payload),
 		onSuccess: (user) => {
 			queryClient.setQueryData(authQueryKey, {
 				data: user,

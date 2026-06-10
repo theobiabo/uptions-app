@@ -5,7 +5,10 @@ import type {
 	AuthUser,
 	ConnectPolymarketRequest,
 	EmailAuthRequest,
+	ForgotPasswordRequest,
+	ResetPasswordRequest,
 	VenueConnection,
+	VerifyEmailRequest,
 } from "@/packages/types/auth.types.ts";
 import { uptionsRequest } from "@/services/api.service.ts";
 import { setAuthToken } from "@/services/auth-token.service.ts";
@@ -17,13 +20,11 @@ export class AuthService {
 
 	async signup(payload: EmailAuthRequest) {
 		const response = await uptionsRequest.POST<
-			ApiResponse<AuthSessionResponse>,
+			ApiResponse<AuthUser>,
 			EmailAuthRequest
 		>(API_ROUTES.auth.signup, payload);
 
-		setAuthToken(response.data.access_token);
-
-		return response.data.user;
+		return response.data;
 	}
 
 	async login(payload: EmailAuthRequest) {
@@ -31,6 +32,35 @@ export class AuthService {
 			ApiResponse<AuthSessionResponse>,
 			EmailAuthRequest
 		>(API_ROUTES.auth.login, payload);
+
+		setAuthToken(response.data.access_token);
+
+		return response.data.user;
+	}
+
+	async verifyEmail(payload: VerifyEmailRequest) {
+		const response = await uptionsRequest.POST<
+			ApiResponse<AuthSessionResponse>,
+			VerifyEmailRequest
+		>(API_ROUTES.auth.verifyEmail, payload);
+
+		setAuthToken(response.data.access_token);
+
+		return response.data.user;
+	}
+
+	forgotPassword(payload: ForgotPasswordRequest) {
+		return uptionsRequest.POST<ApiResponse<string>, ForgotPasswordRequest>(
+			API_ROUTES.auth.forgotPassword,
+			payload,
+		);
+	}
+
+	async resetPassword(payload: ResetPasswordRequest) {
+		const response = await uptionsRequest.POST<
+			ApiResponse<AuthSessionResponse>,
+			ResetPasswordRequest
+		>(API_ROUTES.auth.resetPassword, payload);
 
 		setAuthToken(response.data.access_token);
 
