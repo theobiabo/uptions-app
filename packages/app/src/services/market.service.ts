@@ -10,6 +10,13 @@ import type {
 import { uptionsRequest } from "./api.service";
 
 export class MarketService {
+	fetchMarket(marketId: string, options?: RequestOptions) {
+		return uptionsRequest.GET<ApiResponse<PolymarketMarket>>(
+			API_ROUTES.polymarket.market(marketId),
+			options,
+		);
+	}
+
 	fetchMarketData(
 		query: PolymarketMarketsQuery = {},
 		options?: Omit<RequestOptions, "query">,

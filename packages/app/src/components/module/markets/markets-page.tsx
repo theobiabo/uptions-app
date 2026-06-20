@@ -1,5 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { Bolt, Search } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
+import { AppKeyword } from "@/common";
 import { AuthPanel } from "@/components/auth/auth-panel.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
@@ -9,9 +11,12 @@ import { Button } from "@/components/ui/button.tsx";
 import { useConnectPolymarket, useCurrentUser } from "@/hooks/use-auth.ts";
 import { usePolymarketMarkets } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
+import {
+	type Market,
+	normalizeMarket,
+} from "@/packages/markets/market-utils.ts";
 import { marketCategories } from "@/packages/markets/markets-data.ts";
 import type { ConnectPolymarketRequest } from "@/packages/types/auth.types.ts";
-import type { PolymarketMarket } from "@/packages/types/market.types.ts";
 import {
 	defaultVenueId,
 	type VenueId,
@@ -58,7 +63,7 @@ export function MarketsPage() {
 					<div className="flex items-start justify-between gap-4">
 						<div>
 							<Typography className="text-white" variant="h2">
-								Markets
+								{AppKeyword.Markets}
 							</Typography>
 							<Typography className="mt-1 text-white/55" variant="bodySm">
 								Choose a connected market venue before browsing or building
@@ -122,7 +127,7 @@ export function MarketsPage() {
 				<section className="grid gap-3 border-b border-white/10 py-5 lg:grid-cols-[minmax(0,1fr)_380px]">
 					<div className="border border-white/10 bg-app-card p-5">
 						<Typography className="text-white" variant="h3">
-							Connected Markets
+							Connected {AppKeyword.Markets}
 						</Typography>
 						<Typography className="mt-2 text-white/55" variant="bodySm">
 							Wallet login creates your Uptions identity. Venue credentials are
@@ -131,7 +136,7 @@ export function MarketsPage() {
 						<div className="mt-5 flex items-center justify-between border border-white/10 bg-white/[0.02] p-4">
 							<div>
 								<Typography className="text-white" variant="label">
-									Polymarket
+									{AppKeyword.Polymarket}
 								</Typography>
 								<Typography className="mt-1 text-white/55" variant="bodySm">
 									{polymarketConnection
@@ -361,61 +366,58 @@ function emptyToUndefined(value: string | undefined) {
 	return trimmed ? trimmed : undefined;
 }
 
-type Market = {
-	category: (typeof marketCategories)[number];
-	change: string;
-	id: string;
-	image: string | null;
-	no: string;
-	positive: boolean;
-	title: string;
-	volume: string;
-	yes: string;
-};
-
 function MarketCard({ market }: { market: Market }) {
 	return (
-		<article className="border border-white/10 bg-app-card p-4">
-			{market.image && (
-				<img
-					alt=""
-					className="mb-4 aspect-[16/9] w-full object-cover"
-					src={market.image}
-				/>
-			)}
-			<div className="flex items-start justify-between gap-4">
-				<div>
-					<span className="border border-white/10 bg-white/[0.02] px-2 py-0.5 text-sm text-white">
-						{market.category}
-					</span>
-					<Typography className="mt-4 text-white" variant="h3">
-						{market.title}
+		<article className="relative cursor-pointer border border-white/10 bg-app-card p-4 transition hover:border-primary/60">
+			<Link
+				aria-label={market.title}
+				className="absolute inset-0 z-10 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+				params={{ marketId: market.id }}
+				to="/markets/$marketId"
+			/>
+			<div className="pointer-events-none relative z-0">
+				{market.image && (
+					<img
+						alt=""
+						className="mb-4 aspect-[16/9] w-full object-cover"
+						src={market.image}
+					/>
+				)}
+				<div className="flex items-start justify-between gap-4">
+					<div>
+						<span className="border border-white/10 bg-white/[0.02] px-2 py-0.5 text-sm text-white">
+							{market.category}
+						</span>
+						<Typography className="mt-4 text-white" variant="h3">
+							{market.title}
+						</Typography>
+					</div>
+					<Typography
+						className={market.positive ? "text-success" : "text-danger"}
+						variant="label"
+					>
+						{market.positive ? "↗" : "↘"} {market.change}
 					</Typography>
 				</div>
-				<Typography
-					className={market.positive ? "text-success" : "text-danger"}
-					variant="label"
-				>
-					{market.positive ? "↗" : "↘"} {market.change}
-				</Typography>
+
+				<div className="mt-10 grid grid-cols-2 gap-2">
+					<OutcomeCard label={AppKeyword.Yes} value={market.yes} tone="yes" />
+					<OutcomeCard label={AppKeyword.No} value={market.no} tone="no" />
+				</div>
 			</div>
 
-			<div className="mt-10 grid grid-cols-2 gap-2">
-				<OutcomeCard label="YES" value={market.yes} tone="yes" />
-				<OutcomeCard label="NO" value={market.no} tone="no" />
-			</div>
-
-			<div className="mt-5 flex items-center justify-between border-t border-white/10 pt-5">
+			<div className="pointer-events-none relative z-20 mt-5 flex items-center justify-between border-t border-white/10 pt-5">
 				<Typography className="text-white/55" variant="bodySm">
-					Vol: {market.volume}
+					{AppKeyword.Volume}: {market.volume}
 				</Typography>
-				<a
-					className="inline-flex items-center gap-3 text-sm font-semibold text-white no-underline hover:text-primary"
-					href="/builder"
+				<Link
+					className="pointer-events-auto inline-flex items-center gap-3 text-sm font-semibold text-white no-underline hover:text-primary"
+					params={{ marketId: market.id }}
+					to="/$marketId/builder"
 				>
 					<Bolt className="size-5" />
-					Trade
-				</a>
+					Build
+				</Link>
 			</div>
 		</article>
 	);
@@ -468,130 +470,4 @@ function MarketCardSkeleton() {
 			<div className="mt-5 h-5 w-32 animate-pulse bg-white/8" />
 		</article>
 	);
-}
-
-function normalizeMarket(market: PolymarketMarket): Market {
-	const [yesPrice, noPrice] = parsePricePair(market.outcomePrices);
-	const change = market.oneDayPriceChange ?? market.oneWeekPriceChange ?? 0;
-
-	return {
-		category: getMarketCategory(market),
-		change: formatChange(change),
-		id: market.id,
-		image: market.image ?? market.icon ?? null,
-		no: formatPrice(noPrice ?? getNoPrice(market)),
-		positive: change >= 0,
-		title: market.question ?? market.title ?? "Untitled market",
-		volume: formatCompactCurrency(market.volumeNum ?? market.volume),
-		yes: formatPrice(yesPrice ?? market.lastTradePrice ?? market.bestBid),
-	};
-}
-
-function parsePricePair(value: PolymarketMarket["outcomePrices"]) {
-	const prices = parseStringArray(value).map((price) => Number(price));
-
-	return [
-		Number.isFinite(prices[0]) ? prices[0] : null,
-		Number.isFinite(prices[1]) ? prices[1] : null,
-	] as const;
-}
-
-function parseStringArray(value: string | string[] | undefined) {
-	if (Array.isArray(value)) {
-		return value;
-	}
-
-	if (!value) {
-		return [];
-	}
-
-	try {
-		const parsed = JSON.parse(value);
-
-		return Array.isArray(parsed) ? parsed.map(String) : [];
-	} catch {
-		return [];
-	}
-}
-
-function getNoPrice(market: PolymarketMarket) {
-	if (typeof market.lastTradePrice === "number") {
-		return 1 - market.lastTradePrice;
-	}
-
-	if (typeof market.bestAsk === "number") {
-		return 1 - market.bestAsk;
-	}
-
-	return undefined;
-}
-
-function getMarketCategory(
-	market: PolymarketMarket,
-): (typeof marketCategories)[number] {
-	const feeType = market.feeType?.toLowerCase() ?? "";
-	const text = `${market.question ?? ""} ${market.title ?? ""}`.toLowerCase();
-
-	if (feeType.includes("crypto") || text.includes("bitcoin")) {
-		return "Crypto";
-	}
-
-	if (
-		feeType.includes("sports") ||
-		text.includes("nba") ||
-		text.includes("nhl")
-	) {
-		return "Sports";
-	}
-
-	if (
-		text.includes("president") ||
-		text.includes("trump") ||
-		text.includes("election")
-	) {
-		return "Politics";
-	}
-
-	if (
-		text.includes("fed") ||
-		text.includes("rate") ||
-		text.includes("inflation") ||
-		text.includes("recession")
-	) {
-		return "Economics";
-	}
-
-	return "All";
-}
-
-function formatPrice(value: number | undefined) {
-	if (typeof value !== "number" || !Number.isFinite(value)) {
-		return "$0.00";
-	}
-
-	return `$${value.toFixed(value < 0.01 ? 3 : 2)}`;
-}
-
-function formatChange(value: number) {
-	const percentage = value * 100;
-	const sign = percentage >= 0 ? "+" : "";
-
-	return `${sign}${percentage.toFixed(1)}%`;
-}
-
-function formatCompactCurrency(value: number | string | undefined) {
-	const numberValue =
-		typeof value === "string" ? Number.parseFloat(value) : value;
-
-	if (typeof numberValue !== "number" || !Number.isFinite(numberValue)) {
-		return "$0";
-	}
-
-	return new Intl.NumberFormat("en-US", {
-		compactDisplay: "short",
-		currency: "USD",
-		maximumFractionDigits: 1,
-		notation: "compact",
-		style: "currency",
-	}).format(numberValue);
 }

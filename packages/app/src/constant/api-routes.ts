@@ -12,6 +12,8 @@ export const API_ROUTES = {
 		verifyEmail: route("/auth/verify-email"),
 	},
 	polymarket: {
+		market: (marketId: string) =>
+			route(`/polymarket/markets/${encodeURIComponent(marketId)}`),
 		markets: route("/polymarket/markets"),
 	},
 	users: {

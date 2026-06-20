@@ -1,16 +1,28 @@
 import { ChevronDown, Play, Redo2, Undo2, Wallet, X } from "lucide-react";
 
+import { AppKeyword } from "@/common";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { Market } from "@/packages/markets/market-utils.ts";
 import type { VenueId } from "@/packages/venues/venue-data.ts";
 import { venues } from "@/packages/venues/venue-data.ts";
 
 type WorkflowToolbarProps = {
+	canRedo: boolean;
+	canUndo: boolean;
+	market?: Market | null;
+	onRedo: () => void;
+	onUndo: () => void;
 	onVenueChange: (venue: VenueId) => void;
 	venue: VenueId;
 };
 
 export function WorkflowToolbar({
+	canRedo,
+	canUndo,
+	market,
+	onRedo,
+	onUndo,
 	onVenueChange,
 	venue,
 }: WorkflowToolbarProps) {
@@ -18,10 +30,10 @@ export function WorkflowToolbar({
 		<header className="flex h-[68px] shrink-0 items-center justify-between gap-4 border-b border-[var(--app-border)] bg-builder-panel px-5">
 			<div className="min-w-0">
 				<Typography className="text-[var(--app-fg)]" variant="h3">
-					Untitled Workflow
+					{market ? market.title : AppKeyword.UntitledWorkflow}
 				</Typography>
 				<label className="mt-1 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
-					Market
+					{AppKeyword.Market}
 					<select
 						className="bg-transparent text-xs normal-case tracking-normal text-[var(--app-fg)] outline-none"
 						onChange={(event) => onVenueChange(event.target.value as VenueId)}
@@ -41,6 +53,8 @@ export function WorkflowToolbar({
 					<Button
 						aria-label="Undo"
 						className="size-8 border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
+						disabled={!canUndo}
+						onClick={onUndo}
 						size="icon"
 						type="button"
 						variant="ghost"
@@ -50,6 +64,8 @@ export function WorkflowToolbar({
 					<Button
 						aria-label="Redo"
 						className="size-8 border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
+						disabled={!canRedo}
+						onClick={onRedo}
 						size="icon"
 						type="button"
 						variant="ghost"
@@ -73,12 +89,12 @@ export function WorkflowToolbar({
 					variant="ghost"
 				>
 					<Play className="size-4" />
-					Test Run
+					{AppKeyword.TestRun}
 				</Button>
 
 				<Button className="h-10 bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
 					<Wallet className="size-4 md:hidden" />
-					<span className="hidden md:inline">Publish</span>
+					<span className="hidden md:inline">{AppKeyword.Publish}</span>
 				</Button>
 
 				<a

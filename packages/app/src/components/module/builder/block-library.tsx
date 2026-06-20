@@ -1,5 +1,6 @@
 import { GripVertical, Search } from "lucide-react";
 
+import { AppKeyword } from "@/common";
 import { Typography } from "@/components/typography/typography.tsx";
 import { cn } from "@/lib/utils.ts";
 import type { WorkflowBlock } from "@/packages/builder/builder-data.ts";
@@ -13,7 +14,7 @@ export function BlockLibrary() {
 		<aside className="relative z-10 flex min-h-0 w-full flex-col border-r border-[var(--app-border)] bg-builder-panel/90 backdrop-blur lg:w-[294px]">
 			<div className="flex h-[68px] shrink-0 items-center border-b border-[var(--app-border)] px-4">
 				<Typography className="text-[var(--app-fg)]" variant="h3">
-					Blocks
+					{AppKeyword.Blocks}
 				</Typography>
 			</div>
 			<div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
@@ -21,7 +22,7 @@ export function BlockLibrary() {
 					<Search className="size-4" />
 					<input
 						className="min-w-0 flex-1 bg-transparent text-sm text-[var(--app-fg)] outline-none placeholder:text-[var(--app-muted-fg)]"
-						placeholder="Search"
+						placeholder={AppKeyword.Search}
 						type="search"
 					/>
 				</label>

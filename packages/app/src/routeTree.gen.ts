@@ -14,6 +14,8 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MarketsMarketIdRouteImport } from './routes/markets_.$marketId'
+import { Route as MarketIdBuilderRouteImport } from './routes/$marketId.builder'
 
 const MarketsRoute = MarketsRouteImport.update({
   id: '/markets',
@@ -40,6 +42,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketsMarketIdRoute = MarketsMarketIdRouteImport.update({
+  id: '/markets_/$marketId',
+  path: '/markets/$marketId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketIdBuilderRoute = MarketIdBuilderRouteImport.update({
+  id: '/$marketId/builder',
+  path: '/$marketId/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/$marketId/builder': typeof MarketIdBuilderRoute
+  '/markets/$marketId': typeof MarketsMarketIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/$marketId/builder': typeof MarketIdBuilderRoute
+  '/markets/$marketId': typeof MarketsMarketIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,37 @@ export interface FileRoutesById {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/$marketId/builder': typeof MarketIdBuilderRoute
+  '/markets_/$marketId': typeof MarketsMarketIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analytics' | '/builder' | '/dashboard' | '/markets'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/builder'
+    | '/dashboard'
+    | '/markets'
+    | '/$marketId/builder'
+    | '/markets/$marketId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analytics' | '/builder' | '/dashboard' | '/markets'
-  id: '__root__' | '/' | '/analytics' | '/builder' | '/dashboard' | '/markets'
+  to:
+    | '/'
+    | '/analytics'
+    | '/builder'
+    | '/dashboard'
+    | '/markets'
+    | '/$marketId/builder'
+    | '/markets/$marketId'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/builder'
+    | '/dashboard'
+    | '/markets'
+    | '/$marketId/builder'
+    | '/markets_/$marketId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +117,8 @@ export interface RootRouteChildren {
   BuilderRoute: typeof BuilderRoute
   DashboardRoute: typeof DashboardRoute
   MarketsRoute: typeof MarketsRoute
+  MarketIdBuilderRoute: typeof MarketIdBuilderRoute
+  MarketsMarketIdRoute: typeof MarketsMarketIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/markets_/$marketId': {
+      id: '/markets_/$marketId'
+      path: '/markets/$marketId'
+      fullPath: '/markets/$marketId'
+      preLoaderRoute: typeof MarketsMarketIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$marketId/builder': {
+      id: '/$marketId/builder'
+      path: '/$marketId/builder'
+      fullPath: '/$marketId/builder'
+      preLoaderRoute: typeof MarketIdBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   BuilderRoute: BuilderRoute,
   DashboardRoute: DashboardRoute,
   MarketsRoute: MarketsRoute,
+  MarketIdBuilderRoute: MarketIdBuilderRoute,
+  MarketsMarketIdRoute: MarketsMarketIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

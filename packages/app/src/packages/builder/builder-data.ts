@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
 	Clock3,
 	DollarSign,
@@ -6,6 +7,7 @@ import {
 	TrendingUp,
 	Zap,
 } from "lucide-react";
+import { AppKeyword } from "@/common";
 import type { VenueId } from "@/packages/venues/venue-data.ts";
 import { defaultVenueId } from "@/packages/venues/venue-data.ts";
 
@@ -17,6 +19,16 @@ export const workflowBlockKind = {
 
 export type WorkflowBlockKind =
 	(typeof workflowBlockKind)[keyof typeof workflowBlockKind];
+
+export type WorkflowBlock = {
+	description: string;
+	icon: LucideIcon;
+	id: string;
+	kind: WorkflowBlockKind;
+	title: string;
+	value: string;
+	venue: VenueId;
+};
 
 export const workflowBlockTone = {
 	[workflowBlockKind.trigger]: {
@@ -36,7 +48,7 @@ export const workflowBlockTone = {
 	},
 } as const;
 
-export const workflowBlocks = [
+export const workflowBlocks: WorkflowBlock[] = [
 	{
 		id: "price-change",
 		kind: workflowBlockKind.trigger,
@@ -49,9 +61,9 @@ export const workflowBlocks = [
 	{
 		id: "volume-spike",
 		kind: workflowBlockKind.trigger,
-		title: "Volume Spike",
-		description: "Volume exceeds threshold",
-		value: "Volume > 20%",
+		title: `${AppKeyword.Volume} Spike`,
+		description: `${AppKeyword.Volume} exceeds threshold`,
+		value: `${AppKeyword.Volume} > 20%`,
 		venue: defaultVenueId,
 		icon: Zap,
 	},
@@ -118,11 +130,7 @@ export const workflowBlocks = [
 		venue: defaultVenueId,
 		icon: Search,
 	},
-] as const;
-
-export type WorkflowBlock = Omit<(typeof workflowBlocks)[number], "venue"> & {
-	venue: VenueId;
-};
+];
 
 export const workflowBlockGroups = [
 	{
