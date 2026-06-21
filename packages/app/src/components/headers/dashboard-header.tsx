@@ -1,14 +1,9 @@
 import { LogOut, UserRound } from "lucide-react";
 import { useState } from "react";
 import { AuthPanel } from "@/components/auth/auth-panel";
+import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
 	dashboardActions,
@@ -77,8 +72,13 @@ export default function DashboardHeader() {
 							</Button>
 						</div>
 					) : (
-						<Dialog onOpenChange={setAuthOpen} open={authOpen}>
-							<DialogTrigger asChild>
+						<CustomModal
+							className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white"
+							onOpenChange={setAuthOpen}
+							open={authOpen}
+							showHeader={false}
+							title="Uptions account"
+							trigger={
 								<Button
 									className="h-9 bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
 									type="button"
@@ -86,15 +86,13 @@ export default function DashboardHeader() {
 									<UserRound className="size-3.5" />
 									Sign in
 								</Button>
-							</DialogTrigger>
-							<DialogContent className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white">
-								<DialogTitle className="sr-only">Uptions account</DialogTitle>
-								<AuthPanel
-									className="border-0"
-									onAuthenticated={() => setAuthOpen(false)}
-								/>
-							</DialogContent>
-						</Dialog>
+							}
+						>
+							<AuthPanel
+								className="border-0"
+								onAuthenticated={() => setAuthOpen(false)}
+							/>
+						</CustomModal>
 					)}
 				</div>
 			</div>

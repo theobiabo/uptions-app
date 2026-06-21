@@ -1,3 +1,5 @@
+import { AppKeyword } from "@/common";
+
 export const venueIds = {
 	polymarket: "polymarket",
 } as const;
@@ -13,7 +15,7 @@ export type VenueConfig = {
 export const venues = [
 	{
 		id: venueIds.polymarket,
-		label: "Polymarket",
+		label: AppKeyword.Polymarket,
 		description: "Live prediction markets and CLOB execution",
 	},
 ] as const satisfies readonly VenueConfig[];

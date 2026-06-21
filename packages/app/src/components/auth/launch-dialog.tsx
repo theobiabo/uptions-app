@@ -1,13 +1,8 @@
 import { type FormEvent, useState } from "react";
+import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ApiError } from "@/components/errors/api.error.ts";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog.tsx";
 import { useJoinWaitlist } from "@/hooks/use-join-waitlist.ts";
 import { cn } from "@/lib/utils.ts";
 import { AuthPanel } from "./auth-panel.tsx";
@@ -28,28 +23,29 @@ export function LaunchDialog({ buttonClassName }: LaunchDialogProps) {
 	const [open, setOpen] = useState(hasAuthToken);
 
 	return (
-		<Dialog onOpenChange={setOpen} open={open}>
-			<DialogTrigger asChild>
+		<CustomModal
+			className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white"
+			onOpenChange={setOpen}
+			open={open}
+			showHeader={false}
+			title={showWaitlist ? "Join Uptions waitlist" : "Uptions account"}
+			trigger={
 				<Button className={buttonClassName} type="button">
 					{showWaitlist ? "Waitinglist" : "Get started"}
 				</Button>
-			</DialogTrigger>
-			<DialogContent className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white">
-				<DialogTitle className="sr-only">
-					{showWaitlist ? "Join Uptions waitlist" : "Uptions account"}
-				</DialogTitle>
-				{showWaitlist ? (
-					<WaitlistPanel className="border-0" />
-				) : (
-					<AuthPanel
-						className="border-0"
-						onAuthenticated={() => setOpen(false)}
-						resetToken={resetToken}
-						verificationToken={verificationToken}
-					/>
-				)}
-			</DialogContent>
-		</Dialog>
+			}
+		>
+			{showWaitlist ? (
+				<WaitlistPanel className="border-0" />
+			) : (
+				<AuthPanel
+					className="border-0"
+					onAuthenticated={() => setOpen(false)}
+					resetToken={resetToken}
+					verificationToken={verificationToken}
+				/>
+			)}
+		</CustomModal>
 	);
 }
 

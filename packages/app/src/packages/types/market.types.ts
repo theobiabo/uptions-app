@@ -23,7 +23,10 @@ export type PolymarketMarket = {
 	oneMonthPriceChange?: number;
 	outcomes?: string | string[];
 	outcomePrices?: string | string[];
+	resolutionSource?: string;
 	slug?: string;
+	startDate?: string;
+	endDate?: string;
 };
 
 export type PolymarketMarketsQuery = {

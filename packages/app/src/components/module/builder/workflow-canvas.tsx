@@ -1,67 +1,56 @@
 import "@xyflow/react/dist/style.css";
 
 import {
-	addEdge,
 	Background,
 	type Connection,
 	type Edge,
+	type EdgeChange,
 	type Node,
+	type NodeChange,
 	ReactFlow,
 	type ReactFlowInstance,
-	useEdgesState,
-	useNodesState,
+	type XYPosition,
 } from "@xyflow/react";
 import type { DragEvent } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useTheme } from "@/components/theme/theme-provider.tsx";
 import type { WorkflowBlock } from "@/packages/builder/builder-data.ts";
-import {
-	initialWorkflowEdges,
-	initialWorkflowNodes,
-	workflowBlocks,
-} from "@/packages/builder/builder-data.ts";
-import type { VenueId } from "@/packages/venues/venue-data.ts";
 
 import { WorkflowNode } from "./workflow-node.tsx";
 
-type WorkflowCanvasProps = {
-	onSelectBlock: (block?: WorkflowBlock) => void;
-	venue: VenueId;
-};
-
 type WorkflowNodeData = WorkflowBlock;
 
-export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
+type WorkflowCanvasProps = {
+	edges: Edge[];
+	nodes: Node<WorkflowNodeData>[];
+	onAddNode: (blockId: string, position: XYPosition) => void;
+	onConnect: (connection: Connection) => void;
+	onEdgesChange: (changes: EdgeChange<Edge>[]) => void;
+	onNodeDragStart: () => void;
+	onNodeDragStop: () => void;
+	onNodesChange: (changes: NodeChange<Node<WorkflowNodeData>>[]) => void;
+	onSelectNode: (nodeId?: string) => void;
+};
+
+export function WorkflowCanvas({
+	edges,
+	nodes,
+	onAddNode,
+	onConnect,
+	onEdgesChange,
+	onNodeDragStart,
+	onNodeDragStop,
+	onNodesChange,
+	onSelectNode,
+}: WorkflowCanvasProps) {
 	const wrapperRef = useRef<HTMLDivElement>(null);
 	const { theme } = useTheme();
 	const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
 		Node<WorkflowNodeData>,
 		Edge
 	> | null>(null);
-	const [nodes, setNodes, onNodesChange] = useNodesState<
-		Node<WorkflowNodeData>
-	>(initialWorkflowNodes.map((node) => ({ ...node })));
-	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
-		initialWorkflowEdges.map((edge) => ({ ...edge })),
-	);
 	const nodeTypes = useMemo(() => ({ workflowBlock: WorkflowNode }), []);
-
-	const onConnect = useCallback(
-		(connection: Connection) => {
-			setEdges((currentEdges) =>
-				addEdge(
-					{
-						...connection,
-						type: "smoothstep",
-						style: { stroke: "var(--primary)", strokeWidth: 2 },
-					},
-					currentEdges,
-				),
-			);
-		},
-		[setEdges],
-	);
 
 	const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
 		event.preventDefault();
@@ -73,9 +62,8 @@ export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 			event.preventDefault();
 
 			const blockId = event.dataTransfer.getData("application/uptions-block");
-			const block = workflowBlocks.find((item) => item.id === blockId);
 
-			if (!block || !reactFlowInstance || !wrapperRef.current) {
+			if (!blockId || !reactFlowInstance || !wrapperRef.current) {
 				return;
 			}
 
@@ -83,16 +71,10 @@ export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 				x: event.clientX,
 				y: event.clientY,
 			});
-			const node: Node<WorkflowNodeData> = {
-				id: `${block.id}-${crypto.randomUUID()}`,
-				type: "workflowBlock",
-				position,
-				data: { ...block, venue },
-			};
 
-			setNodes((currentNodes) => currentNodes.concat(node));
+			onAddNode(blockId, position);
 		},
-		[reactFlowInstance, setNodes, venue],
+		[onAddNode, reactFlowInstance],
 	);
 
 	return (
@@ -117,9 +99,11 @@ export function WorkflowCanvas({ onSelectBlock, venue }: WorkflowCanvasProps) {
 				onConnect={onConnect}
 				onEdgesChange={onEdgesChange}
 				onInit={setReactFlowInstance}
-				onNodeClick={(_, node) => onSelectBlock(node.data)}
+				onNodeClick={(_, node) => onSelectNode(node.id)}
+				onNodeDragStart={onNodeDragStart}
+				onNodeDragStop={onNodeDragStop}
 				onNodesChange={onNodesChange}
-				onPaneClick={() => onSelectBlock(undefined)}
+				onPaneClick={() => onSelectNode(undefined)}
 				proOptions={{ hideAttribution: true }}
 			>
 				<Background
