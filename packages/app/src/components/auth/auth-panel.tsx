@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { KeyRound, LogIn, MailCheck, UserPlus } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
-import { ApiError } from "@/components/errors/api.error.ts";
+import { AuthMode } from "@/common";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -12,7 +12,8 @@ import {
 	useVerifyEmail,
 } from "@/hooks/use-auth.ts";
 import { cn } from "@/lib/utils.ts";
-import { AuthMode } from "@/common";
+import { getAuthFormButtonLabel } from "@/util/auth.ts";
+import { getRequestErrorMessage } from "@/util/errors.ts";
 
 type AuthPanelProps = {
 	className?: string;
@@ -28,7 +29,9 @@ export function AuthPanel({
 	verificationToken,
 }: AuthPanelProps) {
 	const navigate = useNavigate();
-	const [mode, setMode] = useState<AuthMode>(resetToken ? AuthMode.RESET : AuthMode.LOGIN);
+	const [mode, setMode] = useState<AuthMode>(
+		resetToken ? AuthMode.RESET : AuthMode.LOGIN,
+	);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [notice, setNotice] = useState<string | null>(null);
@@ -52,7 +55,7 @@ export function AuthPanel({
 		forgotPassword.isPending ||
 		resetPassword.isPending ||
 		verifyEmail.isPending;
-	const error = getErrorMessage(activeError ?? verifyEmail.error);
+	const error = getRequestErrorMessage(activeError ?? verifyEmail.error);
 
 	useEffect(() => {
 		if (!verificationToken || verificationAttempted) {
@@ -235,7 +238,7 @@ export function AuthPanel({
 					disabled={isPending}
 					type="submit"
 				>
-					{buttonLabel(mode, isPending)}
+					{getAuthFormButtonLabel(mode, isPending)}
 				</Button>
 			)}
 			{verificationToken && (
@@ -260,32 +263,4 @@ export function AuthPanel({
 			)}
 		</form>
 	);
-}
-
-function buttonLabel(mode: AuthMode, isPending: boolean) {
-	if (isPending) {
-		return mode === "signup"
-			? "Creating account"
-			: mode === "forgot"
-				? "Sending link"
-				: mode === "reset"
-					? "Resetting password"
-					: "Signing in";
-	}
-
-	return mode === "signup"
-		? "Create account"
-		: mode === "forgot"
-			? "Send reset link"
-			: mode === "reset"
-				? "Reset password"
-				: "Sign in";
-}
-
-function getErrorMessage(error: unknown) {
-	if (error instanceof ApiError) {
-		return error.message;
-	}
-
-	return error instanceof Error ? error.message : null;
 }

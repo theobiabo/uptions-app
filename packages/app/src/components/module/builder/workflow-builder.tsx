@@ -5,7 +5,6 @@ import {
 	type Connection,
 	type Edge,
 	type EdgeChange,
-	type Node,
 	type NodeChange,
 	type XYPosition,
 } from "@xyflow/react";
@@ -14,13 +13,21 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
 import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
 import {
-	initialWorkflowEdges,
-	initialWorkflowNodes,
 	type WorkflowBlock,
 	workflowBlocks,
 } from "@/packages/builder/builder-data.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import { defaultVenueId, type VenueId } from "@/packages/venues/venue-data.ts";
+import {
+	appendWorkflowHistory,
+	cloneWorkflowState,
+	createInitialWorkflowState,
+	serializeWorkflowBlock,
+	serializeWorkflowState,
+	type WorkflowNodeModel,
+	type WorkflowState,
+	workflowHistoryLimit,
+} from "@/util/workflow.ts";
 import { BlockLibrary } from "./block-library.tsx";
 import { InspectorPanel } from "./inspector-panel.tsx";
 import { WorkflowCanvas } from "./workflow-canvas.tsx";
@@ -29,15 +36,6 @@ import { WorkflowToolbar } from "./workflow-toolbar.tsx";
 type WorkflowBuilderProps = {
 	marketId?: string;
 };
-
-type WorkflowNodeModel = Node<WorkflowBlock>;
-
-type WorkflowState = {
-	edges: Edge[];
-	nodes: WorkflowNodeModel[];
-};
-
-const historyLimit = 50;
 
 export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const [workflow, setWorkflow] = useState<WorkflowState>(
@@ -82,7 +80,9 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 				}
 
 				if (record) {
-					setPast((items) => appendHistory(items, cloneWorkflowState(current)));
+					setPast((items) =>
+						appendWorkflowHistory(items, cloneWorkflowState(current)),
+					);
 					setFuture([]);
 				}
 
@@ -180,7 +180,9 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 
 					const data = { ...node.data, ...updates };
 
-					if (serializeBlock(node.data) === serializeBlock(data)) {
+					if (
+						serializeWorkflowBlock(node.data) === serializeWorkflowBlock(data)
+					) {
 						return node;
 					}
 
@@ -211,7 +213,7 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			return;
 		}
 
-		setPast((items) => appendHistory(items, snapshot));
+		setPast((items) => appendWorkflowHistory(items, snapshot));
 		setFuture([]);
 	}, []);
 
@@ -230,7 +232,7 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			setFuture((redoItems) =>
 				[cloneWorkflowState(workflowRef.current), ...redoItems].slice(
 					0,
-					historyLimit,
+					workflowHistoryLimit,
 				),
 			);
 			setWorkflow(cloneWorkflowState(previous));
@@ -252,7 +254,10 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			}
 
 			setPast((undoItems) =>
-				appendHistory(undoItems, cloneWorkflowState(workflowRef.current)),
+				appendWorkflowHistory(
+					undoItems,
+					cloneWorkflowState(workflowRef.current),
+				),
 			);
 			setWorkflow(cloneWorkflowState(next));
 
@@ -296,64 +301,4 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			</div>
 		</DashboardLayout>
 	);
-}
-
-function createInitialWorkflowState(): WorkflowState {
-	return {
-		edges: initialWorkflowEdges.map((edge) => ({
-			...edge,
-			style: { ...edge.style },
-		})),
-		nodes: initialWorkflowNodes.map((node) => ({
-			...node,
-			data: { ...node.data },
-			position: { ...node.position },
-		})),
-	};
-}
-
-function appendHistory(items: WorkflowState[], state: WorkflowState) {
-	return items.concat(state).slice(-historyLimit);
-}
-
-function cloneWorkflowState(state: WorkflowState): WorkflowState {
-	return {
-		edges: state.edges.map((edge) => ({
-			...edge,
-			style: edge.style ? { ...edge.style } : undefined,
-		})),
-		nodes: state.nodes.map((node) => ({
-			...node,
-			data: { ...node.data },
-			position: { ...node.position },
-		})),
-	};
-}
-
-function serializeWorkflowState(state: WorkflowState) {
-	return JSON.stringify({
-		edges: state.edges.map((edge) => ({
-			id: edge.id,
-			source: edge.source,
-			target: edge.target,
-			type: edge.type,
-		})),
-		nodes: state.nodes.map((node) => ({
-			data: serializeBlock(node.data),
-			id: node.id,
-			position: node.position,
-			type: node.type,
-		})),
-	});
-}
-
-function serializeBlock(block: WorkflowBlock) {
-	return JSON.stringify({
-		description: block.description,
-		id: block.id,
-		kind: block.kind,
-		title: block.title,
-		value: block.value,
-		venue: block.venue,
-	});
 }

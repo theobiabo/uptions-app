@@ -1,10 +1,10 @@
 import { type FormEvent, useState } from "react";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
-import { ApiError } from "@/components/errors/api.error.ts";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { useJoinWaitlist } from "@/hooks/use-join-waitlist.ts";
 import { cn } from "@/lib/utils.ts";
+import { getRequestErrorMessage } from "@/util/errors.ts";
 import { AuthPanel } from "./auth-panel.tsx";
 
 type LaunchDialogProps = {
@@ -57,7 +57,7 @@ function WaitlistPanel({ className }: WaitlistPanelProps) {
 	const [email, setEmail] = useState("");
 	const [notice, setNotice] = useState<string | null>(null);
 	const joinWaitlist = useJoinWaitlist();
-	const error = getErrorMessage(joinWaitlist.error);
+	const error = getRequestErrorMessage(joinWaitlist.error);
 
 	function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -119,12 +119,4 @@ function WaitlistPanel({ className }: WaitlistPanelProps) {
 			</Button>
 		</form>
 	);
-}
-
-function getErrorMessage(error: unknown) {
-	if (error instanceof ApiError) {
-		return error.message;
-	}
-
-	return error instanceof Error ? error.message : null;
 }

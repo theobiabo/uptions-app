@@ -15,15 +15,21 @@ import type { ReactNode } from "react";
 import { AppKeyword, MarketDetailMetric } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
+import { MarketPageSkeleton } from "@/components/skeleton/market-page-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
-import {
-	normalizeMarket,
-	parseStringArray,
-} from "@/packages/markets/market-utils.ts";
+import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import type { PolymarketMarket } from "@/packages/types/market.types.ts";
+import {
+	formatMarketPrice,
+	formatMarketWindow,
+	formatOutcomePercent,
+} from "@/util/formatters.ts";
+import { getLeadingOutcome, getNoPrice } from "@/util/market-calculations.ts";
+import { buildMarketChartPoints, getFiniteNumber } from "@/util/numbers.ts";
+import { parseStringArray } from "@/util/strings.ts";
 
 type MarketDetailPageProps = {
 	marketId: string;
@@ -318,7 +324,7 @@ function MarketValue({
 function PriceChart({ market }: { market: PolymarketMarket }) {
 	const basePrice =
 		getFiniteNumber(market.lastTradePrice ?? market.bestBid) ?? 0.5;
-	const points = buildChartPoints(basePrice);
+	const points = buildMarketChartPoints(basePrice);
 	const path = points.map((point) => `${point.x},${point.y}`).join(" ");
 
 	return (
@@ -685,115 +691,4 @@ function RelatedMarket({
 			</div>
 		</div>
 	);
-}
-
-function MarketPageSkeleton() {
-	return (
-		<div className="mx-auto grid max-w-[1500px] gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-			<div className="grid gap-5">
-				<div className="h-40 animate-pulse border border-white/10 bg-white/8" />
-				<div className="h-[480px] animate-pulse border border-white/10 bg-white/8" />
-			</div>
-			<div className="h-[680px] animate-pulse border border-white/10 bg-white/8" />
-		</div>
-	);
-}
-
-function formatMarketWindow(market: PolymarketMarket) {
-	const start = formatDate(market.startDate);
-	const end = formatDate(market.endDate);
-
-	if (start && end) {
-		return `${start}-${end}`;
-	}
-
-	return start ?? end ?? "Market schedule unavailable";
-}
-
-function formatDate(value: string | undefined) {
-	if (!value) {
-		return null;
-	}
-
-	const date = new Date(value);
-
-	if (Number.isNaN(date.getTime())) {
-		return value;
-	}
-
-	return new Intl.DateTimeFormat("en-US", {
-		dateStyle: "medium",
-		timeStyle: "short",
-	}).format(date);
-}
-
-function formatMarketPrice(value: number | string | undefined) {
-	const numberValue = getFiniteNumber(value);
-
-	if (numberValue === null) {
-		return "$0.00";
-	}
-
-	return `$${numberValue.toFixed(2)}`;
-}
-
-function formatOutcomePercent(value: number | string | undefined) {
-	const numberValue = getFiniteNumber(value);
-
-	if (numberValue === null) {
-		return "0%";
-	}
-
-	return `${Math.round(numberValue * 100)}%`;
-}
-
-function getNoPrice(market: PolymarketMarket) {
-	const lastTradePrice = getFiniteNumber(market.lastTradePrice);
-
-	if (lastTradePrice !== null) {
-		return 1 - lastTradePrice;
-	}
-
-	const bestAsk = getFiniteNumber(market.bestAsk);
-
-	if (bestAsk !== null) {
-		return 1 - bestAsk;
-	}
-
-	return undefined;
-}
-
-function getLeadingOutcome(
-	market: PolymarketMarket,
-	outcomeOne: string,
-	outcomeTwo: string,
-) {
-	const yesPrice =
-		getFiniteNumber(market.bestBid ?? market.lastTradePrice) ?? 0;
-	const noPrice = getFiniteNumber(getNoPrice(market)) ?? 0;
-
-	return yesPrice >= noPrice
-		? { label: outcomeOne, price: yesPrice }
-		: { label: outcomeTwo, price: noPrice };
-}
-
-function getFiniteNumber(value: number | string | undefined) {
-	const numberValue =
-		typeof value === "string" ? Number.parseFloat(value) : value;
-
-	return typeof numberValue === "number" && Number.isFinite(numberValue)
-		? numberValue
-		: null;
-}
-
-function buildChartPoints(basePrice: number) {
-	const clamped = Math.min(Math.max(basePrice, 0.05), 0.95);
-
-	return Array.from({ length: 12 }).map((_, index) => {
-		const x = (index / 11) * 900;
-		const wave = Math.sin(index * 0.85) * 36 + Math.cos(index * 0.35) * 24;
-		const y = 250 - clamped * 120 + wave;
-
-		return { x, y: Math.min(Math.max(y, 45), 260) };
-	});
 }

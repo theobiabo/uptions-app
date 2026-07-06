@@ -7,6 +7,7 @@ import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
 import { ViewToggle } from "@/components/module/app-shell/product-shell.tsx";
+import { MarketCardSkeleton } from "@/components/skeleton/market-card-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Stepper } from "@/components/ui/stepper.tsx";
@@ -28,6 +29,7 @@ import {
 	type VenueId,
 	venues,
 } from "@/packages/venues/venue-data.ts";
+import { emptyToUndefined } from "@/util/strings.ts";
 
 export function MarketsPage() {
 	const [activeCategory, setActiveCategory] =
@@ -72,9 +74,12 @@ export function MarketsPage() {
 							<Typography className="text-white" variant="h2">
 								{AppKeyword.Markets}
 							</Typography>
-							<Typography className="mt-1 max-w-2xl text-white/55" variant="bodySm">
-								Browse venue markets, choose a platform, and build automations from
-								one focused workspace.
+							<Typography
+								className="mt-1 max-w-2xl text-white/55"
+								variant="bodySm"
+							>
+								Browse venue markets, choose a platform, and build automations
+								from one focused workspace.
 							</Typography>
 						</div>
 						<ViewToggle />
@@ -201,7 +206,6 @@ export function MarketsPage() {
 						))}
 				</section>
 			</div>
-
 		</DashboardLayout>
 	);
 }
@@ -268,7 +272,9 @@ function PlatformSelectorDialog({
 						<div className="grid gap-3 sm:grid-cols-2">
 							{venues.map((item) => (
 								<PlatformOption
-									connection={item.id === defaultVenueId ? connection : undefined}
+									connection={
+										item.id === defaultVenueId ? connection : undefined
+									}
 									isSelected={item.id === venue}
 									key={item.id}
 									onSelect={() => onVenueChange(item.id)}
@@ -350,7 +356,9 @@ function PlatformOption({
 						{venue.description}
 					</Typography>
 				</div>
-				{isSelected && <CheckCircle2 className="size-5 shrink-0 text-primary" />}
+				{isSelected && (
+					<CheckCircle2 className="size-5 shrink-0 text-primary" />
+				)}
 			</div>
 			<div className="mt-4">
 				<ConnectionBadge connection={connection} />
@@ -390,8 +398,8 @@ function PlatformDetails({
 							Polymarket
 						</Typography>
 						<Typography className="mt-2 text-white/55" variant="bodySm">
-							Browse public markets immediately. Add API credentials when you want
-							to automate trading actions through Uptions.
+							Browse public markets immediately. Add API credentials when you
+							want to automate trading actions through Uptions.
 						</Typography>
 					</div>
 					<ConnectionBadge connection={connection} />
@@ -574,12 +582,6 @@ function ConnectionInput({
 	);
 }
 
-function emptyToUndefined(value: string | undefined) {
-	const trimmed = value?.trim();
-
-	return trimmed ? trimmed : undefined;
-}
-
 function MarketCard({ market }: { market: Market }) {
 	return (
 		<article className="relative cursor-pointer border border-white/10 bg-app-card p-4 transition hover:border-primary/60">
@@ -668,20 +670,5 @@ function OutcomeCard({
 				{value}
 			</Typography>
 		</div>
-	);
-}
-
-function MarketCardSkeleton() {
-	return (
-		<article className="border border-white/10 bg-app-card p-4">
-			<div className="aspect-video w-full animate-pulse bg-white/8" />
-			<div className="mt-4 h-5 w-24 animate-pulse bg-white/8" />
-			<div className="mt-4 h-7 w-4/5 animate-pulse bg-white/8" />
-			<div className="mt-10 grid grid-cols-2 gap-2">
-				<div className="h-20.5 animate-pulse border border-white/10 bg-white/8" />
-				<div className="h-20.5 animate-pulse border border-white/10 bg-white/8" />
-			</div>
-			<div className="mt-5 h-5 w-32 animate-pulse bg-white/8" />
-		</article>
 	);
 }

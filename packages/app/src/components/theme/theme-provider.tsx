@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-type Theme = "light" | "dark";
+import { getInitialTheme, type Theme } from "@/util/theme.ts";
 
 type ThemeContextValue = {
 	theme: Theme;
@@ -13,22 +12,6 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const storageKey = "uptions-theme";
 const themeTransitionClass = "theme-transitioning";
 const themeTransitionDuration = 260;
-
-function getInitialTheme(): Theme {
-	if (typeof window === "undefined") {
-		return "dark";
-	}
-
-	const storedTheme = window.localStorage.getItem(storageKey);
-
-	if (storedTheme === "light" || storedTheme === "dark") {
-		return storedTheme;
-	}
-
-	return window.matchMedia("(prefers-color-scheme: dark)").matches
-		? "dark"
-		: "light";
-}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
 	const [theme, setTheme] = useState<Theme>(getInitialTheme);

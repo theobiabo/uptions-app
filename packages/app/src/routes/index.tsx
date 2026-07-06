@@ -1,17 +1,17 @@
-import { Suspense, lazy } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
-import { Loader } from '@/components/misc/load';
+import { createFileRoute } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
+import { Loader } from "@/components/skeleton/loader";
 
-const Homepage = lazy(() => import('@/pages'));
+const Homepage = lazy(() => import("@/pages"));
 
-export const Route = createFileRoute('/')({
-  component: Home,
+export const Route = createFileRoute("/")({
+	component: Home,
 });
 
 function Home() {
-  return (
-    <Suspense fallback={<Loader />}>
-      <Homepage />
-    </Suspense>
-  );
+	return (
+		<Suspense fallback={<Loader />}>
+			<Homepage />
+		</Suspense>
+	);
 }
