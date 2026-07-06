@@ -15,7 +15,7 @@ export function ThemeToggle() {
 			type="button"
 			variant="ghost"
 		>
-			<Icon className="size-4 text-black dark:text-white" />
+			<Icon className="size-4 text-app-fg" />
 		</Button>
 	);
 }

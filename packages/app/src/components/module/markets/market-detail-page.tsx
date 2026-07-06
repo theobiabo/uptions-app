@@ -57,7 +57,7 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 					<Typography className="text-danger" variant="h3">
 						Unable to load market
 					</Typography>
-					<Typography className="mt-2 text-white/60" variant="bodySm">
+					<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 						{error}
 					</Typography>
 				</Panel>
@@ -86,9 +86,9 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 
 	return (
 		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-			<div className="mx-auto grid w-full max-w-[1500px] gap-5 text-white">
+			<div className="mx-auto grid w-full max-w-[1500px] gap-5 text-app-fg">
 				<Link
-					className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-white/55 no-underline hover:text-white"
+					className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-app-muted-fg no-underline hover:text-app-fg"
 					to="/markets"
 				>
 					<ArrowLeft className="size-4" />
@@ -105,25 +105,28 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 										title={normalizedMarket.title}
 									/>
 									<div className="min-w-0">
-										<div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-white/50">
+										<div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-app-muted-fg">
 											<span>{normalizedMarket.category}</span>
-											<span className="h-1 w-1 bg-white/25" />
+											<span className="h-1 w-1 bg-app-muted5" />
 											<span
 												className={cn(
 													"inline-flex items-center gap-1",
 													statusLabel === AppKeyword.Live
 														? "text-success"
-														: "text-white/45",
+														: "text-app-muted-fg",
 												)}
 											>
 												<span className="h-2 w-2 bg-current" />
 												{statusLabel}
 											</span>
 										</div>
-										<Typography className="mt-3 text-white" variant="h1">
+										<Typography className="mt-3 text-app-fg" variant="h1">
 											{normalizedMarket.title}
 										</Typography>
-										<Typography className="mt-2 text-white/55" variant="bodySm">
+										<Typography
+											className="mt-2 text-app-muted-fg"
+											variant="bodySm"
+										>
 											{formatMarketWindow(market)}
 										</Typography>
 									</div>
@@ -161,14 +164,14 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 
 						<Panel className="p-5">
 							<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-								<Typography className="text-white" variant="h3">
+								<Typography className="text-app-fg" variant="h3">
 									{AppKeyword.Market}
 								</Typography>
 								<div className="flex flex-wrap gap-2">
 									{platformUrl && (
 										<Button
 											asChild
-											className="h-10 border border-white/10 bg-white/5 px-4 text-sm font-semibold hover:bg-white/10"
+											className="h-10 border border-app-border bg-app-muted px-4 text-sm font-semibold hover:bg-app-muted"
 										>
 											<a href={platformUrl} rel="noreferrer" target="_blank">
 												<span className="h-2 w-2 bg-danger" />
@@ -198,19 +201,19 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 						<OrderBook volume={normalizedMarket.volume} />
 
 						<Panel className="p-5">
-							<div className="flex gap-8 border-b border-white/10 text-lg font-bold">
+							<div className="flex gap-8 border-b border-app-border text-lg font-bold">
 								<button
-									className="border-b-2 border-primary pb-4 text-white"
+									className="border-b-2 border-primary pb-4 text-app-fg"
 									type="button"
 								>
 									{AppKeyword.Rules}
 								</button>
-								<button className="pb-4 text-white/45" type="button">
+								<button className="pb-4 text-app-muted-fg" type="button">
 									{AppKeyword.MarketContext}
 								</button>
 							</div>
 							<Typography
-								className="max-w-4xl py-6 text-white/60"
+								className="max-w-4xl py-6 text-app-muted-fg"
 								variant="body"
 							>
 								{market.resolutionSource ??
@@ -251,7 +254,7 @@ function Panel({
 	className?: string;
 }) {
 	return (
-		<section className={cn("border border-white/10 bg-app-card", className)}>
+		<section className={cn("border border-app-border bg-app-card", className)}>
 			{children}
 		</section>
 	);
@@ -273,7 +276,7 @@ function MarketIcon({ image, title }: { image: string | null; title: string }) {
 		title.toLowerCase().includes("bitcoin");
 
 	return (
-		<div className="grid size-20 shrink-0 place-items-center bg-orange-500 text-4xl font-black text-white md:size-24">
+		<div className="grid size-20 shrink-0 place-items-center bg-orange-500 text-4xl font-black text-app-fg md:size-24">
 			{isBitcoin ? "B" : title.charAt(0).toUpperCase()}
 		</div>
 	);
@@ -289,7 +292,7 @@ function IconButton({
 	return (
 		<button
 			aria-label={label}
-			className="grid size-10 place-items-center text-white/65 transition hover:bg-white/8 hover:text-white"
+			className="grid size-10 place-items-center text-app-muted-fg transition hover:bg-app-muted hover:text-app-fg"
 			type="button"
 		>
 			{children}
@@ -307,12 +310,12 @@ function MarketValue({
 	value: string;
 }) {
 	return (
-		<div className="border border-white/10 bg-white/[0.02] p-4">
-			<Typography className="font-bold text-white/45" variant="bodySm">
+		<div className="border border-app-border bg-app-muted p-4">
+			<Typography className="font-bold text-app-muted-fg" variant="bodySm">
 				{label}
 			</Typography>
 			<div className="mt-1 flex items-center gap-3">
-				<p className="text-3xl font-bold text-white">{value}</p>
+				<p className="text-3xl font-bold text-app-fg">{value}</p>
 				{trend && (
 					<span className="text-sm font-bold text-danger">{trend}</span>
 				)}
@@ -328,13 +331,13 @@ function PriceChart({ market }: { market: PolymarketMarket }) {
 	const path = points.map((point) => `${point.x},${point.y}`).join(" ");
 
 	return (
-		<div className="relative mt-6 min-h-[360px] border-y border-white/10 py-5">
+		<div className="relative mt-6 min-h-[360px] border-y border-app-border py-5">
 			<div className="absolute inset-x-0 top-10 bottom-12 grid grid-rows-5">
 				{Array.from({ length: 5 }).map((_, index) => (
-					<div className="border-t border-white/8" key={index.toString()} />
+					<div className="border-t border-app-border" key={index.toString()} />
 				))}
 			</div>
-			<div className="absolute right-0 top-0 grid h-[314px] content-between text-sm font-semibold text-white/35">
+			<div className="absolute right-0 top-0 grid h-[314px] content-between text-sm font-semibold text-app-muted-fg">
 				<span>$63,320</span>
 				<span>$63,310</span>
 				<span>$63,300</span>
@@ -381,7 +384,7 @@ function PriceChart({ market }: { market: PolymarketMarket }) {
 					r="5"
 				/>
 			</svg>
-			<div className="mt-3 flex w-[calc(100%-72px)] justify-between text-sm font-medium text-white/35">
+			<div className="mt-3 flex w-[calc(100%-72px)] justify-between text-sm font-medium text-app-muted-fg">
 				<span>12:05 AM</span>
 				<span>12:06 AM</span>
 				<span>12:07 AM</span>
@@ -397,7 +400,7 @@ function ChartTimeline() {
 	return (
 		<div className="mt-6 flex flex-wrap items-center gap-3">
 			<TimePill active label={AppKeyword.Past} />
-			<span className="h-8 w-px bg-white/10" />
+			<span className="h-8 w-px bg-app-muted" />
 			<OutcomeDot tone="up" />
 			<OutcomeDot tone="down" />
 			<OutcomeDot tone="down" />
@@ -416,7 +419,7 @@ function TimePill({ active, label }: { active?: boolean; label: string }) {
 		<button
 			className={cn(
 				"h-10 px-4 text-sm font-bold",
-				active ? "bg-white text-black" : "bg-white/8 text-white/70",
+				active ? "bg-app-fg text-app-bg" : "bg-app-muted text-app-muted-fg",
 			)}
 			type="button"
 		>
@@ -429,7 +432,7 @@ function OutcomeDot({ tone }: { tone: "down" | "up" }) {
 	return (
 		<span
 			className={cn(
-				"grid size-8 place-items-center text-xs font-black text-white",
+				"grid size-8 place-items-center text-xs font-black text-app-fg",
 				tone === "up" ? "bg-success" : "bg-danger",
 			)}
 		>
@@ -443,18 +446,18 @@ function OrderBook({ volume }: { volume: string }) {
 		<Panel className="p-5">
 			<div className="flex items-center justify-between gap-4">
 				<div className="flex items-center gap-3">
-					<Typography className="text-white" variant="h3">
+					<Typography className="text-app-fg" variant="h3">
 						{AppKeyword.OrderBook}
 					</Typography>
-					<span className="grid size-5 place-items-center bg-white/10 text-xs font-bold text-white/55">
+					<span className="grid size-5 place-items-center bg-app-muted text-xs font-bold text-app-muted-fg">
 						i
 					</span>
 				</div>
-				<div className="flex items-center gap-4 text-lg font-semibold text-white/45">
+				<div className="flex items-center gap-4 text-lg font-semibold text-app-muted-fg">
 					<span>
 						{AppKeyword.Volume}: {volume}
 					</span>
-					<ChevronDown className="size-5 text-white" />
+					<ChevronDown className="size-5 text-app-fg" />
 				</div>
 			</div>
 		</Panel>
@@ -467,17 +470,17 @@ function TopHoldersPnl() {
 	return (
 		<Panel className="overflow-hidden">
 			<div className="flex items-center justify-between gap-4 px-5 py-4">
-				<Typography className="text-white" variant="h3">
+				<Typography className="text-app-fg" variant="h3">
 					{AppKeyword.TopHoldersPnl}
 				</Typography>
-				<div className="flex items-center gap-2 text-sm font-bold text-white/35">
+				<div className="flex items-center gap-2 text-sm font-bold text-app-muted-fg">
 					<span>10</span>
-					<span className="bg-white/10 px-2 py-1 text-white">20</span>
+					<span className="bg-app-muted px-2 py-1 text-app-fg">20</span>
 					<span>50</span>
 				</div>
 			</div>
-			<div className="border-y border-white/10 bg-white/[0.03] px-5 py-3">
-				<div className="grid grid-cols-[70px_repeat(4,1fr)] gap-2 text-center text-sm font-bold text-white/45">
+			<div className="border-y border-app-border bg-app-muted px-5 py-3">
+				<div className="grid grid-cols-[70px_repeat(4,1fr)] gap-2 text-center text-sm font-bold text-app-muted-fg">
 					<span />
 					{columns.map((column) => (
 						<span key={column}>{column}</span>
@@ -535,7 +538,7 @@ function OutcomePanel({ label, title }: { label: string; title: string }) {
 			<p className="mt-6 text-2xl font-bold text-info">
 				{AppKeyword.Outcome}: {label}
 			</p>
-			<p className="mt-5 text-lg leading-7 text-white/55">{title}</p>
+			<p className="mt-5 text-lg leading-7 text-app-muted-fg">{title}</p>
 		</Panel>
 	);
 }
@@ -549,10 +552,10 @@ function AutomationPanel({
 }) {
 	return (
 		<Panel className="p-5">
-			<Typography className="text-white" variant="h3">
+			<Typography className="text-app-fg" variant="h3">
 				{AppKeyword.Automation}
 			</Typography>
-			<Typography className="mt-2 text-white/55" variant="bodySm">
+			<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 				Use this market as the source for triggers, conditions, and execution
 				rules.
 			</Typography>
@@ -569,7 +572,7 @@ function AutomationPanel({
 				{platformUrl && (
 					<Button
 						asChild
-						className="h-11 border border-white/10 bg-white/5 px-5 text-sm font-semibold hover:bg-white/10"
+						className="h-11 border border-app-border bg-app-muted px-5 text-sm font-semibold hover:bg-app-muted"
 					>
 						<a href={platformUrl} rel="noreferrer" target="_blank">
 							{AppKeyword.OpenOnPolymarket}
@@ -596,7 +599,7 @@ function RelatedCampaigns({
 		<Panel className="p-5">
 			<div className="flex items-center gap-2">
 				<Button
-					className="size-10 border border-white/10 bg-white/5 !text-white/65 hover:bg-white/10"
+					className="size-10 border border-app-border bg-app-muted !text-app-muted-fg hover:bg-app-muted"
 					size="icon"
 				>
 					<LineChart className="size-5" />
@@ -608,7 +611,7 @@ function RelatedCampaigns({
 					<span className="text-lg font-black">B</span>
 				</Button>
 				<Button
-					className="size-10 border border-white/10 bg-white/5 !text-white/65 hover:bg-white/10"
+					className="size-10 border border-app-border bg-app-muted !text-app-muted-fg hover:bg-app-muted"
 					size="icon"
 				>
 					<SlidersHorizontal className="size-5" />
@@ -620,8 +623,8 @@ function RelatedCampaigns({
 						className={cn(
 							"h-9 px-3 text-sm font-bold",
 							timeframe === "1 Hour"
-								? "bg-white text-black"
-								: "bg-white/8 text-white/55",
+								? "bg-app-fg text-app-bg"
+								: "bg-app-muted text-app-muted-fg",
 						)}
 						key={timeframe}
 						type="button"
@@ -666,28 +669,28 @@ function RelatedMarket({
 	tone: "black" | "blue" | "orange";
 }) {
 	return (
-		<div className="flex items-center justify-between gap-4 border border-white/10 bg-white/[0.02] p-3">
+		<div className="flex items-center justify-between gap-4 border border-app-border bg-app-muted p-3">
 			<div className="flex min-w-0 items-center gap-3">
 				<div
 					className={cn(
-						"grid size-11 shrink-0 place-items-center text-lg font-black text-white",
+						"grid size-11 shrink-0 place-items-center text-lg font-black text-app-inverse",
 						tone === "orange" && "bg-primary",
 						tone === "blue" && "bg-info",
-						tone === "black" && "bg-black",
+						tone === "black" && "bg-app-fg",
 					)}
 				>
 					{icon}
 				</div>
-				<p className="min-w-0 text-sm font-bold leading-6 text-white">
+				<p className="min-w-0 text-sm font-bold leading-6 text-app-fg">
 					{label}
 				</p>
 			</div>
 			<div className="shrink-0 text-right">
-				<p className="text-xl font-bold text-white">
+				<p className="text-xl font-bold text-app-fg">
 					<span className="mr-2 inline-block size-2 bg-danger" />
 					{percentage}
 				</p>
-				<p className="text-xs font-semibold text-white/40">Up</p>
+				<p className="text-xs font-semibold text-app-muted-fg">Up</p>
 			</div>
 		</div>
 	);

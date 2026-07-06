@@ -24,7 +24,7 @@ export function LaunchDialog({ buttonClassName }: LaunchDialogProps) {
 
 	return (
 		<CustomModal
-			className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white"
+			className="border-app-border bg-[var(--dashboard-bg)] p-0 text-app-fg"
 			onOpenChange={setOpen}
 			open={open}
 			showHeader={false}
@@ -76,24 +76,24 @@ function WaitlistPanel({ className }: WaitlistPanelProps) {
 	return (
 		<form
 			className={cn(
-				"grid gap-4 border border-white/10 bg-app-card p-5",
+				"grid gap-4 border border-app-border bg-app-card p-5",
 				className,
 			)}
 			onSubmit={handleSubmit}
 		>
 			<div>
-				<Typography className="text-white" variant="h3">
+				<Typography className="text-app-fg" variant="h3">
 					Join the waitlist
 				</Typography>
-				<Typography className="mt-2 text-white/55" variant="bodySm">
+				<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 					Leave your email and we will let you know when Uptions is ready.
 				</Typography>
 			</div>
 			<label className="grid gap-2">
-				<span className="text-xs font-medium text-white/55">Email</span>
+				<span className="text-xs font-medium text-app-muted-fg">Email</span>
 				<input
 					autoComplete="email"
-					className="h-10 border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35"
+					className="h-10 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg"
 					onChange={(event) => setEmail(event.target.value)}
 					required
 					type="email"
@@ -101,7 +101,7 @@ function WaitlistPanel({ className }: WaitlistPanelProps) {
 				/>
 			</label>
 			{notice && (
-				<Typography className="text-white/70" variant="bodySm">
+				<Typography className="text-app-muted-fg" variant="bodySm">
 					{notice}
 				</Typography>
 			)}

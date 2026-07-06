@@ -150,17 +150,17 @@ export function AuthPanel({
 	return (
 		<form
 			className={cn(
-				"grid gap-4 border border-white/10 bg-app-card p-5",
+				"grid gap-4 border border-app-border bg-app-card p-5",
 				className,
 			)}
 			onSubmit={handleSubmit}
 		>
 			<div className="flex items-start justify-between gap-4">
 				<div>
-					<Typography className="text-white" variant="h3">
+					<Typography className="text-app-fg" variant="h3">
 						{title}
 					</Typography>
-					<Typography className="mt-2 text-white/55" variant="bodySm">
+					<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 						{mode === AuthMode.FORGOT
 							? "Enter your email and we will send a password reset link."
 							: mode === AuthMode.RESET
@@ -170,11 +170,11 @@ export function AuthPanel({
 									: "Use your Uptions account, then connect prediction market venues separately."}
 					</Typography>
 				</div>
-				<div className="flex border border-white/10">
+				<div className="flex border border-app-border">
 					<button
 						className={cn(
-							"h-9 px-3 text-xs font-semibold text-white/60",
-							mode === AuthMode.LOGIN && "bg-white text-black",
+							"h-9 px-3 text-xs font-semibold text-app-muted-fg",
+							mode === AuthMode.LOGIN && "bg-app-fg text-app-bg",
 						)}
 						onClick={() => setMode(AuthMode.LOGIN)}
 						type="button"
@@ -183,8 +183,8 @@ export function AuthPanel({
 					</button>
 					<button
 						className={cn(
-							"h-9 px-3 text-xs font-semibold text-white/60",
-							mode === AuthMode.SIGNUP && "bg-white text-black",
+							"h-9 px-3 text-xs font-semibold text-app-muted-fg",
+							mode === AuthMode.SIGNUP && "bg-app-fg text-app-bg",
 						)}
 						onClick={() => setMode(AuthMode.SIGNUP)}
 						type="button"
@@ -195,10 +195,10 @@ export function AuthPanel({
 			</div>
 			{mode !== AuthMode.RESET && !verificationToken && (
 				<label className="grid gap-2">
-					<span className="text-xs font-medium text-white/55">Email</span>
+					<span className="text-xs font-medium text-app-muted-fg">Email</span>
 					<input
 						autoComplete="email"
-						className="h-10 border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35"
+						className="h-10 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg"
 						onChange={(event) => setEmail(event.target.value)}
 						required
 						type="email"
@@ -208,12 +208,14 @@ export function AuthPanel({
 			)}
 			{mode !== AuthMode.FORGOT && !verificationToken && (
 				<label className="grid gap-2">
-					<span className="text-xs font-medium text-white/55">Password</span>
+					<span className="text-xs font-medium text-app-muted-fg">
+						Password
+					</span>
 					<input
 						autoComplete={
 							mode === AuthMode.LOGIN ? "current-password" : "new-password"
 						}
-						className="h-10 border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35"
+						className="h-10 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg"
 						minLength={8}
 						onChange={(event) => setPassword(event.target.value)}
 						required
@@ -223,7 +225,7 @@ export function AuthPanel({
 				</label>
 			)}
 			{notice && (
-				<Typography className="text-white/70" variant="bodySm">
+				<Typography className="text-app-muted-fg" variant="bodySm">
 					{notice}
 				</Typography>
 			)}
@@ -242,7 +244,7 @@ export function AuthPanel({
 				</Button>
 			)}
 			{verificationToken && (
-				<div className="flex h-10 items-center gap-2 text-sm text-white/65">
+				<div className="flex h-10 items-center gap-2 text-sm text-app-muted-fg">
 					<MailCheck className="size-4 text-primary" />
 					{verifyEmail.isError
 						? "Verification failed"
@@ -253,7 +255,7 @@ export function AuthPanel({
 			)}
 			{mode === AuthMode.LOGIN && !verificationToken && (
 				<button
-					className="inline-flex items-center gap-2 text-left text-xs font-semibold text-white/55 hover:text-white"
+					className="inline-flex items-center gap-2 text-left text-xs font-semibold text-app-muted-fg hover:text-app-fg"
 					onClick={() => setMode(AuthMode.FORGOT)}
 					type="button"
 				>

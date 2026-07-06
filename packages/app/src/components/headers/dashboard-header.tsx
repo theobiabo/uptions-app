@@ -56,13 +56,13 @@ export default function DashboardHeader() {
 					<ThemeToggle />
 					{user ? (
 						<div className="flex items-center gap-2">
-							<div className="hidden h-9 max-w-[220px] items-center gap-2 border border-white/10 px-3 text-xs font-semibold text-white/70 sm:flex">
+							<div className="hidden h-9 max-w-[220px] items-center gap-2 border border-app-border px-3 text-xs font-semibold text-app-muted-fg sm:flex">
 								<UserRound className="size-3.5 text-primary" />
 								<span className="truncate">{accountLabel}</span>
 							</div>
 							<Button
 								aria-label="Sign out"
-								className="size-9 bg-transparent text-white/60 hover:bg-white/8 hover:text-white"
+								className="size-9 bg-transparent text-app-muted-fg hover:bg-app-muted hover:text-app-fg"
 								onClick={logout}
 								size="icon"
 								type="button"
@@ -73,7 +73,7 @@ export default function DashboardHeader() {
 						</div>
 					) : (
 						<CustomModal
-							className="border-white/10 bg-[var(--dashboard-bg)] p-0 text-white"
+							className="border-app-border bg-[var(--dashboard-bg)] p-0 text-app-fg"
 							onOpenChange={setAuthOpen}
 							open={authOpen}
 							showHeader={false}
