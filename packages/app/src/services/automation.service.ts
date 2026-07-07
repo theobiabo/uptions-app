@@ -6,6 +6,7 @@ import type {
 	PublishAutomationRequest,
 	TestRunAutomationRequest,
 	TestRunAutomationResponse,
+	UpdateAutomationStatusRequest,
 } from "@/packages/types/automation.types.ts";
 import { uptionsRequest } from "@/services/api.service.ts";
 
@@ -13,6 +14,12 @@ export class AutomationService {
 	alerts() {
 		return uptionsRequest.GET<ApiResponse<AutomationAlert[]>>(
 			API_ROUTES.automations.alerts,
+		);
+	}
+
+	delete(automationId: string) {
+		return uptionsRequest.DELETE<ApiResponse<string>>(
+			API_ROUTES.automations.item(automationId),
 		);
 	}
 
@@ -29,11 +36,25 @@ export class AutomationService {
 		>(API_ROUTES.automations.publish, payload);
 	}
 
+	setStatus(automationId: string, payload: UpdateAutomationStatusRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<Automation>,
+			UpdateAutomationStatusRequest
+		>(API_ROUTES.automations.status(automationId), payload);
+	}
+
 	testRun(payload: TestRunAutomationRequest) {
 		return uptionsRequest.POST<
 			ApiResponse<TestRunAutomationResponse>,
 			TestRunAutomationRequest
 		>(API_ROUTES.automations.testRun, payload);
+	}
+
+	update(automationId: string, payload: PublishAutomationRequest) {
+		return uptionsRequest.PUT<
+			ApiResponse<Automation>,
+			PublishAutomationRequest
+		>(API_ROUTES.automations.item(automationId), payload);
 	}
 }
 

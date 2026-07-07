@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+	AutomationStatus,
 	PublishAutomationRequest,
 	TestRunAutomationRequest,
 } from "@/packages/types/automation.types.ts";
@@ -48,6 +49,53 @@ export function usePublishAutomation() {
 			automationService.publish(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
+		},
+	});
+}
+
+export function useUpdateAutomation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({
+			automationId,
+			payload,
+		}: {
+			automationId: string;
+			payload: PublishAutomationRequest;
+		}) => automationService.update(automationId, payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
+		},
+	});
+}
+
+export function useSetAutomationStatus() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({
+			automationId,
+			status,
+		}: {
+			automationId: string;
+			status: AutomationStatus;
+		}) => automationService.setStatus(automationId, { status }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
+		},
+	});
+}
+
+export function useDeleteAutomation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (automationId: string) =>
+			automationService.delete(automationId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
+			queryClient.invalidateQueries({ queryKey: automationAlertsQueryKey });
 		},
 	});
 }

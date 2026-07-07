@@ -5,17 +5,29 @@ import { AuthPanel } from "@/components/auth/auth-panel";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet.tsx";
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
+import { useAutomationAlerts } from "@/hooks/use-automations.ts";
 import {
 	dashboardActions,
 	dashboardNavigationItems,
 } from "@/packages/navigation/dashboard-navigation";
+import type { AutomationAlert } from "@/packages/types/automation.types.ts";
+import { formatDate } from "@/util/formatters.ts";
 import Logo from "../misc/logo";
 
 export default function DashboardHeader() {
 	const NotificationsIcon = dashboardActions.notificationsIcon;
 	const { user } = useCurrentUser();
 	const logout = useLogout();
+	const { alerts, isLoading: alertsLoading } = useAutomationAlerts();
 	const navigate = useNavigate();
 	const [authOpen, setAuthOpen] = useState(false);
 	const [logoutOpen, setLogoutOpen] = useState(false);
@@ -53,15 +65,53 @@ export default function DashboardHeader() {
 				</nav>
 
 				<div className="flex items-center gap-3">
-					<Button
-						aria-label={dashboardActions.notificationsLabel}
-						className="size-9  border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
-						size="icon"
-						type="button"
-						variant="ghost"
-					>
-						<NotificationsIcon className="size-4" />
-					</Button>
+					<Sheet>
+						<SheetTrigger asChild>
+							<Button
+								aria-label={dashboardActions.notificationsLabel}
+								className="size-9 border-0 bg-transparent text-[var(--app-muted-fg)] hover:bg-[var(--app-muted)] hover:text-[var(--app-fg)]"
+								size="icon"
+								type="button"
+								variant="ghost"
+							>
+								<NotificationsIcon className="size-4" />
+							</Button>
+						</SheetTrigger>
+						<SheetContent className="border-app-border bg-app-card text-app-fg">
+							<SheetHeader className="border-b border-app-border px-5 py-5">
+								<SheetTitle className="text-app-fg">Notifications</SheetTitle>
+								<SheetDescription className="text-app-muted-fg">
+									Recent automation activity and alerts.
+								</SheetDescription>
+							</SheetHeader>
+							<div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
+								{alertsLoading ? (
+									<div className="mt-5 grid gap-3">
+										<div className="h-24 animate-pulse bg-app-muted" />
+										<div className="h-24 animate-pulse bg-app-muted" />
+										<div className="h-24 animate-pulse bg-app-muted" />
+									</div>
+								) : alerts.length > 0 ? (
+									<div className="mt-5 grid gap-3">
+										{alerts.map((alert) => (
+											<NotificationItem alert={alert} key={alert.id} />
+										))}
+									</div>
+								) : (
+									<div className="grid min-h-60 place-items-center text-center">
+										<div>
+											<p className="text-sm font-semibold text-app-fg">
+												No notifications yet
+											</p>
+											<p className="mt-2 text-sm text-app-muted-fg">
+												Automation alerts will appear here.
+											</p>
+										</div>
+									</div>
+								)}
+							</div>
+						</SheetContent>
+					</Sheet>
 					<ThemeToggle />
 					{user ? (
 						<div className="flex items-center gap-2">
@@ -132,5 +182,26 @@ export default function DashboardHeader() {
 				</div>
 			</div>
 		</header>
+	);
+}
+
+function NotificationItem({ alert }: { alert: AutomationAlert }) {
+	return (
+		<article className="border border-app-border bg-app-muted p-4">
+			<div className="flex items-start justify-between gap-3">
+				<div className="min-w-0">
+					<p className="text-sm font-semibold text-app-fg">{alert.title}</p>
+					<p className="mt-2 text-sm leading-6 text-app-muted-fg">
+						{alert.message}
+					</p>
+				</div>
+				<span className="rounded-full bg-app-card px-3 py-1 text-xs font-semibold capitalize text-primary">
+					{alert.status}
+				</span>
+			</div>
+			<p className="mt-4 text-xs font-medium text-app-muted-fg">
+				{formatDate(alert.created_at)}
+			</p>
+		</article>
 	);
 }

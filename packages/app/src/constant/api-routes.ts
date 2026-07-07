@@ -5,8 +5,12 @@ const route = (path: string) => `${API_VERSION}${path}`;
 export const API_ROUTES = {
 	automations: {
 		alerts: route("/automation-alerts"),
+		item: (automationId: string) =>
+			route(`/automations/${encodeURIComponent(automationId)}`),
 		list: route("/automations"),
 		publish: route("/automations"),
+		status: (automationId: string) =>
+			route(`/automations/${encodeURIComponent(automationId)}/status`),
 		testRun: route("/automations/test-run"),
 	},
 	auth: {

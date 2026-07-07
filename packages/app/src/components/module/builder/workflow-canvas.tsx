@@ -90,6 +90,7 @@ export function WorkflowCanvas({
 				className="relative z-10"
 				colorMode={theme}
 				defaultViewport={{ x: 80, y: 60, zoom: 1.05 }}
+				deleteKeyCode={null}
 				edges={edges}
 				fitView
 				maxZoom={1.6}
