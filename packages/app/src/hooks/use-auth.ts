@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiError } from "@/components/errors/api.error.ts";
 import type {
 	ConnectPolymarketRequest,
 	EmailAuthRequest,
@@ -9,6 +8,7 @@ import type {
 } from "@/packages/types/auth.types.ts";
 import { authService } from "@/services/auth.service.ts";
 import { clearAuthToken, getAuthToken } from "@/services/auth-token.service.ts";
+import { getRequestErrorMessage } from "@/util/errors.ts";
 
 export const authQueryKey = ["auth", "me"] as const;
 
@@ -20,7 +20,7 @@ export function useCurrentUser() {
 	});
 
 	return {
-		error: getErrorMessage(query.error),
+		error: getRequestErrorMessage(query.error, "Authentication request failed"),
 		isLoading: query.isLoading,
 		refetch: query.refetch,
 		user: query.data?.data ?? null,
@@ -115,12 +115,4 @@ export function useConnectPolymarket() {
 			queryClient.invalidateQueries({ queryKey: authQueryKey });
 		},
 	});
-}
-
-function getErrorMessage(error: unknown) {
-	if (error instanceof ApiError) {
-		return error.message;
-	}
-
-	return error ? "Authentication request failed" : null;
 }

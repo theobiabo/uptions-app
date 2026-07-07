@@ -1,5 +1,12 @@
 import type { marketCategories } from "@/packages/markets/markets-data.ts";
 import type { PolymarketMarket } from "@/packages/types/market.types.ts";
+import {
+	formatCompactCurrency,
+	formatPercentageChange,
+	formatPrice,
+} from "@/util/formatters.ts";
+import { getNoPrice } from "@/util/market-calculations.ts";
+import { parseStringArray } from "@/util/strings.ts";
 
 export type Market = {
 	category: (typeof marketCategories)[number];
@@ -24,7 +31,7 @@ export function normalizeMarket(market: PolymarketMarket): Market {
 
 	return {
 		category: getMarketCategory(market),
-		change: formatChange(change),
+		change: formatPercentageChange(change),
 		description: market.description ?? null,
 		id: market.id,
 		image: market.image ?? market.icon ?? null,
@@ -39,40 +46,7 @@ export function normalizeMarket(market: PolymarketMarket): Market {
 	};
 }
 
-export function parseStringArray(value: string | string[] | undefined) {
-	if (Array.isArray(value)) {
-		return value;
-	}
-
-	if (!value) {
-		return [];
-	}
-
-	try {
-		const parsed = JSON.parse(value);
-
-		return Array.isArray(parsed) ? parsed.map(String) : [];
-	} catch {
-		return [];
-	}
-}
-
-export function formatCompactCurrency(value: number | string | undefined) {
-	const numberValue =
-		typeof value === "string" ? Number.parseFloat(value) : value;
-
-	if (typeof numberValue !== "number" || !Number.isFinite(numberValue)) {
-		return "$0";
-	}
-
-	return new Intl.NumberFormat("en-US", {
-		compactDisplay: "short",
-		currency: "USD",
-		maximumFractionDigits: 1,
-		notation: "compact",
-		style: "currency",
-	}).format(numberValue);
-}
+export { parseStringArray } from "@/util/strings.ts";
 
 function parsePricePair(value: PolymarketMarket["outcomePrices"]) {
 	const prices = parseStringArray(value).map((price) => Number(price));
@@ -81,18 +55,6 @@ function parsePricePair(value: PolymarketMarket["outcomePrices"]) {
 		Number.isFinite(prices[0]) ? prices[0] : null,
 		Number.isFinite(prices[1]) ? prices[1] : null,
 	] as const;
-}
-
-function getNoPrice(market: PolymarketMarket) {
-	if (typeof market.lastTradePrice === "number") {
-		return 1 - market.lastTradePrice;
-	}
-
-	if (typeof market.bestAsk === "number") {
-		return 1 - market.bestAsk;
-	}
-
-	return undefined;
 }
 
 function getMarketCategory(
@@ -131,19 +93,4 @@ function getMarketCategory(
 	}
 
 	return "All";
-}
-
-function formatPrice(value: number | undefined) {
-	if (typeof value !== "number" || !Number.isFinite(value)) {
-		return "$0.00";
-	}
-
-	return `$${value.toFixed(value < 0.01 ? 3 : 2)}`;
-}
-
-function formatChange(value: number) {
-	const percentage = value * 100;
-	const sign = percentage >= 0 ? "+" : "";
-
-	return `${sign}${percentage.toFixed(1)}%`;
 }

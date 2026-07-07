@@ -3,7 +3,7 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { ReactNode } from "react";
 
-import { LoaderScreen } from "@/components/misc/loader-screen.tsx";
+import { LoaderScreen } from "@/components/skeleton/loader-screen";
 import { ThemeProvider } from "@/components/theme/theme-provider.tsx";
 import { QueryProvider } from "@/providers/query-provider.tsx";
 

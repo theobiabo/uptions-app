@@ -33,7 +33,7 @@ export function Stepper({
 								"flex size-8 shrink-0 items-center justify-center border text-sm font-bold",
 								isActive || isComplete
 									? "border-primary bg-primary text-primary-foreground"
-									: "border-white/10 bg-white/5 text-white/45",
+									: "border-app-border bg-app-muted text-app-muted-fg",
 							)}
 						>
 							{index + 1}
@@ -42,13 +42,13 @@ export function Stepper({
 							<span
 								className={cn(
 									"block text-sm font-semibold",
-									isActive ? "text-white" : "text-white/60",
+									isActive ? "text-app-fg" : "text-app-muted-fg",
 								)}
 							>
 								{step.title}
 							</span>
 							{step.description ? (
-								<span className="mt-1 block text-xs text-white/45">
+								<span className="mt-1 block text-xs text-app-muted-fg">
 									{step.description}
 								</span>
 							) : null}
@@ -65,7 +65,7 @@ export function Stepper({
 									"flex w-full items-center gap-3 border p-3 text-left transition",
 									isActive
 										? "border-primary bg-primary/10"
-										: "border-white/10 bg-white/3 hover:border-white/25 hover:bg-white/5",
+										: "border-app-border bg-app-muted hover:border-app-border hover:bg-app-muted",
 								)}
 								onClick={() => onStepChange?.(index)}
 								type="button"
@@ -73,7 +73,7 @@ export function Stepper({
 								{content}
 							</button>
 						) : (
-							<div className="flex w-full items-center gap-3 border border-white/10 bg-white/2 p-3 opacity-70">
+							<div className="flex w-full items-center gap-3 border border-app-border bg-app-muted p-3 opacity-70">
 								{content}
 							</div>
 						)}

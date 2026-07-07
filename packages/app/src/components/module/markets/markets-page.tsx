@@ -7,6 +7,7 @@ import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
 import { ViewToggle } from "@/components/module/app-shell/product-shell.tsx";
+import { MarketCardSkeleton } from "@/components/skeleton/market-card-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Stepper } from "@/components/ui/stepper.tsx";
@@ -28,6 +29,7 @@ import {
 	type VenueId,
 	venues,
 } from "@/packages/venues/venue-data.ts";
+import { emptyToUndefined } from "@/util/strings.ts";
 
 export function MarketsPage() {
 	const [activeCategory, setActiveCategory] =
@@ -65,16 +67,19 @@ export function MarketsPage() {
 
 	return (
 		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-			<div className="w-full text-white">
-				<section className="border-b border-white/10 pb-5">
+			<div className="w-full text-app-fg">
+				<section className="border-b border-app-border pb-5">
 					<div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 						<div>
-							<Typography className="text-white" variant="h2">
+							<Typography className="text-app-fg" variant="h2">
 								{AppKeyword.Markets}
 							</Typography>
-							<Typography className="mt-1 max-w-2xl text-white/55" variant="bodySm">
-								Browse venue markets, choose a platform, and build automations from
-								one focused workspace.
+							<Typography
+								className="mt-1 max-w-2xl text-app-muted-fg"
+								variant="bodySm"
+							>
+								Browse venue markets, choose a platform, and build automations
+								from one focused workspace.
 							</Typography>
 						</div>
 						<ViewToggle />
@@ -90,26 +95,26 @@ export function MarketsPage() {
 							selectedVenue={selectedVenue}
 							trigger={
 								<Button
-									className="h-11 justify-between border border-white/10 bg-app-card px-4 text-sm font-semibold hover:border-primary/50 hover:bg-white/8 xl:min-w-55"
+									className="h-11 justify-between border border-app-border bg-app-card px-4 text-sm font-semibold hover:border-primary/50 hover:bg-app-muted xl:min-w-55"
 									type="button"
 									variant="outline"
 								>
 									<span className="flex min-w-0 flex-col items-start gap-0.5">
 										<span>Select Platform</span>
-										<span className="max-w-37.5 truncate text-xs font-medium text-white/45">
+										<span className="max-w-37.5 truncate text-xs font-medium text-app-muted-fg">
 											{selectedVenue.label}
 										</span>
 									</span>
-									<ChevronDown className="size-4 text-white/55" />
+									<ChevronDown className="size-4 text-app-muted-fg" />
 								</Button>
 							}
 							venue={venue}
 						/>
 
-						<label className="flex h-11 w-full items-center gap-3 border border-white/10 bg-app-card px-4 text-white/55 focus-within:border-primary/60">
+						<label className="flex h-11 w-full items-center gap-3 border border-app-border bg-app-card px-4 text-app-muted-fg focus-within:border-primary/60">
 							<Search className="size-5" />
 							<input
-								className="min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/45 disabled:text-white/25"
+								className="min-w-0 flex-1 bg-transparent text-base text-app-fg outline-none placeholder:text-app-muted-fg disabled:text-app-muted-fg"
 								disabled={!isVenueAvailable}
 								onChange={(event) => setSearch(event.target.value)}
 								placeholder={`Search ${selectedVenue.label} markets...`}
@@ -124,8 +129,8 @@ export function MarketsPage() {
 									className={cn(
 										"h-9 px-4 text-sm font-medium transition",
 										category === activeCategory
-											? "bg-white text-black"
-											: "bg-transparent text-white hover:bg-white/8",
+											? "bg-app-fg text-app-bg"
+											: "bg-transparent text-app-fg hover:bg-app-muted",
 									)}
 									key={category}
 									onClick={() => setActiveCategory(category)}
@@ -137,12 +142,12 @@ export function MarketsPage() {
 						</div>
 					</div>
 
-					<div className="mt-4 flex flex-col gap-3 border border-white/10 bg-app-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+					<div className="mt-4 flex flex-col gap-3 border border-app-border bg-app-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 						<div>
-							<Typography className="text-white" variant="label">
+							<Typography className="text-app-fg" variant="label">
 								{selectedVenue.label}
 							</Typography>
-							<Typography className="mt-1 text-white/50" variant="bodySm">
+							<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
 								{selectedVenue.description}
 							</Typography>
 						</div>
@@ -152,11 +157,11 @@ export function MarketsPage() {
 
 				<section className="grid gap-3 py-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 					{!isVenueAvailable && (
-						<div className="border border-white/10 bg-app-card p-5 md:col-span-2 xl:col-span-3 2xl:col-span-4">
-							<Typography className="text-white" variant="h3">
+						<div className="border border-app-border bg-app-card p-5 md:col-span-2 xl:col-span-3 2xl:col-span-4">
+							<Typography className="text-app-fg" variant="h3">
 								{selectedVenue.label} is not available yet
 							</Typography>
-							<Typography className="mt-2 text-white/55" variant="bodySm">
+							<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 								{selectedVenue.description}
 							</Typography>
 						</div>
@@ -176,7 +181,7 @@ export function MarketsPage() {
 							<Typography className="text-danger" variant="h3">
 								Unable to load markets
 							</Typography>
-							<Typography className="mt-2 text-white/60" variant="bodySm">
+							<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 								{error}
 							</Typography>
 						</div>
@@ -201,7 +206,6 @@ export function MarketsPage() {
 						))}
 				</section>
 			</div>
-
 		</DashboardLayout>
 	);
 }
@@ -249,15 +253,15 @@ function PlatformSelectorDialog({
 
 	return (
 		<CustomModal
-			className="max-h-[86vh] overflow-hidden border-white/10 bg-app-card p-0 text-white shadow-2xl sm:max-w-3xl"
+			className="max-h-[86vh] overflow-hidden border-app-border bg-app-card p-0 text-app-fg shadow-2xl sm:max-w-3xl"
 			description="Choose where you want to browse markets. Connect credentials only when you need authenticated trading actions."
-			descriptionClassName="text-white/55"
-			headerClassName="border-b border-white/10 p-6 pb-5"
+			descriptionClassName="text-app-muted-fg"
+			headerClassName="border-b border-app-border p-6 pb-5"
 			onOpenChange={handleOpenChange}
 			open={open}
 			showCloseButton
 			title="Select platform"
-			titleClassName="text-2xl text-white"
+			titleClassName="text-2xl text-app-fg"
 			trigger={trigger}
 		>
 			<div className="grid min-h-0 gap-5 overflow-y-auto p-5">
@@ -268,7 +272,9 @@ function PlatformSelectorDialog({
 						<div className="grid gap-3 sm:grid-cols-2">
 							{venues.map((item) => (
 								<PlatformOption
-									connection={item.id === defaultVenueId ? connection : undefined}
+									connection={
+										item.id === defaultVenueId ? connection : undefined
+									}
 									isSelected={item.id === venue}
 									key={item.id}
 									onSelect={() => onVenueChange(item.id)}
@@ -277,12 +283,12 @@ function PlatformSelectorDialog({
 							))}
 						</div>
 
-						<div className="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+						<div className="flex flex-col gap-3 border-t border-app-border pt-5 sm:flex-row sm:items-center sm:justify-between">
 							<div>
-								<Typography className="text-white" variant="label">
+								<Typography className="text-app-fg" variant="label">
 									Selected: {selectedVenue.label}
 								</Typography>
-								<Typography className="mt-1 text-white/50" variant="bodySm">
+								<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
 									{selectedVenue.description}
 								</Typography>
 							</div>
@@ -302,9 +308,9 @@ function PlatformSelectorDialog({
 							isAuthenticated={isAuthenticated}
 							venue={selectedVenue}
 						/>
-						<div className="border-t border-white/10 pt-5">
+						<div className="border-t border-app-border pt-5">
 							<Button
-								className="h-10 border border-white/10 bg-white/5 px-4 text-sm font-semibold hover:bg-white/10"
+								className="h-10 border border-app-border bg-app-muted px-4 text-sm font-semibold hover:bg-app-muted"
 								onClick={() => setStep(0)}
 								type="button"
 								variant="outline"
@@ -336,21 +342,23 @@ function PlatformOption({
 				"w-full border p-4 text-left transition",
 				isSelected
 					? "border-primary bg-primary/10"
-					: "border-white/10 bg-black/20 hover:border-white/25 hover:bg-white/5",
+					: "border-app-border bg-app-muted hover:border-app-border hover:bg-app-muted",
 			)}
 			onClick={onSelect}
 			type="button"
 		>
 			<div className="flex items-center justify-between gap-3">
 				<div>
-					<Typography className="text-white" variant="label">
+					<Typography className="text-app-fg" variant="label">
 						{venue.label}
 					</Typography>
-					<Typography className="mt-1 text-white/50" variant="bodySm">
+					<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
 						{venue.description}
 					</Typography>
 				</div>
-				{isSelected && <CheckCircle2 className="size-5 shrink-0 text-primary" />}
+				{isSelected && (
+					<CheckCircle2 className="size-5 shrink-0 text-primary" />
+				)}
 			</div>
 			<div className="mt-4">
 				<ConnectionBadge connection={connection} />
@@ -370,11 +378,11 @@ function PlatformDetails({
 }) {
 	if (venue.id !== defaultVenueId) {
 		return (
-			<div className="border border-white/10 bg-black/20 p-5">
-				<Typography className="text-white" variant="h3">
+			<div className="border border-app-border bg-app-muted p-5">
+				<Typography className="text-app-fg" variant="h3">
 					{venue.label} support is coming soon
 				</Typography>
-				<Typography className="mt-2 text-white/55" variant="bodySm">
+				<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 					{venue.description}
 				</Typography>
 			</div>
@@ -383,25 +391,25 @@ function PlatformDetails({
 
 	return (
 		<div className="grid gap-4">
-			<div className="border border-white/10 bg-black/20 p-4">
+			<div className="border border-app-border bg-app-muted p-4">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 					<div>
-						<Typography className="text-white" variant="h3">
+						<Typography className="text-app-fg" variant="h3">
 							Polymarket
 						</Typography>
-						<Typography className="mt-2 text-white/55" variant="bodySm">
-							Browse public markets immediately. Add API credentials when you want
-							to automate trading actions through Uptions.
+						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
+							Browse public markets immediately. Add API credentials when you
+							want to automate trading actions through Uptions.
 						</Typography>
 					</div>
 					<ConnectionBadge connection={connection} />
 				</div>
 				{connection && (
-					<div className="mt-4 border-t border-white/10 pt-4">
-						<Typography className="text-white/45" variant="caption">
+					<div className="mt-4 border-t border-app-border pt-4">
+						<Typography className="text-app-muted-fg" variant="caption">
 							Connected account
 						</Typography>
-						<Typography className="mt-1 break-all text-white" variant="bodySm">
+						<Typography className="mt-1 break-all text-app-fg" variant="bodySm">
 							{connection.account_identifier}
 						</Typography>
 					</div>
@@ -417,7 +425,9 @@ function ConnectionBadge({ connection }: { connection?: VenueConnection }) {
 		<span
 			className={cn(
 				"inline-flex w-fit items-center gap-2 px-3 py-1 text-xs font-semibold",
-				connection ? "bg-success/15 text-success" : "bg-white/8 text-white/55",
+				connection
+					? "bg-success/15 text-success"
+					: "bg-app-muted text-app-muted-fg",
 			)}
 		>
 			<span className="size-1.5 bg-current" />
@@ -470,14 +480,14 @@ function PolymarketConnectionForm({
 
 	return (
 		<form
-			className="grid gap-4 border border-white/10 bg-black/20 p-5"
+			className="grid gap-4 border border-app-border bg-app-muted p-5"
 			onSubmit={handleSubmit}
 		>
 			<div>
-				<Typography className="text-white" variant="h3">
+				<Typography className="text-app-fg" variant="h3">
 					Connect Polymarket
 				</Typography>
-				<Typography className="mt-2 text-white/55" variant="bodySm">
+				<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
 					Paste the API credentials created from Polymarket L1 auth.
 				</Typography>
 			</div>
@@ -514,11 +524,11 @@ function PolymarketConnectionForm({
 					value={form.funder ?? ""}
 				/>
 				<label className="grid gap-2">
-					<span className="text-xs font-medium text-white/55">
+					<span className="text-xs font-medium text-app-muted-fg">
 						Signature type
 					</span>
 					<select
-						className="h-11 border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-primary/60"
+						className="h-11 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none focus:border-primary/60"
 						onChange={(event) =>
 							updateField("signature_type", Number(event.target.value))
 						}
@@ -562,9 +572,9 @@ function ConnectionInput({
 }) {
 	return (
 		<label className="grid gap-2">
-			<span className="text-xs font-medium text-white/55">{label}</span>
+			<span className="text-xs font-medium text-app-muted-fg">{label}</span>
 			<input
-				className="h-11 border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-primary/60"
+				className="h-11 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg focus:border-primary/60"
 				onChange={(event) => onChange(event.target.value)}
 				required={required}
 				type={type}
@@ -574,15 +584,9 @@ function ConnectionInput({
 	);
 }
 
-function emptyToUndefined(value: string | undefined) {
-	const trimmed = value?.trim();
-
-	return trimmed ? trimmed : undefined;
-}
-
 function MarketCard({ market }: { market: Market }) {
 	return (
-		<article className="relative cursor-pointer border border-white/10 bg-app-card p-4 transition hover:border-primary/60">
+		<article className="relative cursor-pointer border border-app-border bg-app-card p-4 transition hover:border-primary/60">
 			<Link
 				aria-label={market.title}
 				className="absolute inset-0 z-10 outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -599,10 +603,10 @@ function MarketCard({ market }: { market: Market }) {
 				)}
 				<div className="flex items-start justify-between gap-4">
 					<div>
-						<span className="border border-white/10 bg-white/2 px-2 py-0.5 text-sm text-white">
+						<span className="border border-app-border bg-app-muted px-2 py-0.5 text-sm text-app-fg">
 							{market.category}
 						</span>
-						<Typography className="mt-4 text-white" variant="h3">
+						<Typography className="mt-4 text-app-fg" variant="h3">
 							{market.title}
 						</Typography>
 					</div>
@@ -620,12 +624,12 @@ function MarketCard({ market }: { market: Market }) {
 				</div>
 			</div>
 
-			<div className="pointer-events-none relative z-20 mt-5 flex items-center justify-between border-t border-white/10 pt-5">
-				<Typography className="text-white/55" variant="bodySm">
+			<div className="pointer-events-none relative z-20 mt-5 flex items-center justify-between border-t border-app-border pt-5">
+				<Typography className="text-app-muted-fg" variant="bodySm">
 					{AppKeyword.Volume}: {market.volume}
 				</Typography>
 				<Link
-					className="pointer-events-auto inline-flex items-center gap-3 text-sm font-semibold text-white no-underline hover:text-primary"
+					className="pointer-events-auto inline-flex items-center gap-3 text-sm font-semibold text-app-fg no-underline hover:text-primary"
 					params={{ marketId: market.id }}
 					to="/$marketId/builder"
 				>
@@ -655,7 +659,7 @@ function OutcomeCard({
 					: "border-danger/45 bg-danger/10",
 			)}
 		>
-			<Typography className="text-white/55" variant="caption">
+			<Typography className="text-app-muted-fg" variant="caption">
 				{label}
 			</Typography>
 			<Typography
@@ -668,20 +672,5 @@ function OutcomeCard({
 				{value}
 			</Typography>
 		</div>
-	);
-}
-
-function MarketCardSkeleton() {
-	return (
-		<article className="border border-white/10 bg-app-card p-4">
-			<div className="aspect-video w-full animate-pulse bg-white/8" />
-			<div className="mt-4 h-5 w-24 animate-pulse bg-white/8" />
-			<div className="mt-4 h-7 w-4/5 animate-pulse bg-white/8" />
-			<div className="mt-10 grid grid-cols-2 gap-2">
-				<div className="h-20.5 animate-pulse border border-white/10 bg-white/8" />
-				<div className="h-20.5 animate-pulse border border-white/10 bg-white/8" />
-			</div>
-			<div className="mt-5 h-5 w-32 animate-pulse bg-white/8" />
-		</article>
 	);
 }

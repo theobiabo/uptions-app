@@ -5,22 +5,36 @@ import {
 	type Connection,
 	type Edge,
 	type EdgeChange,
-	type Node,
 	type NodeChange,
 	type XYPosition,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppKeyword } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
+import {
+	usePublishAutomation,
+	useTestRunAutomation,
+} from "@/hooks/use-automations.ts";
 import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
 import {
-	initialWorkflowEdges,
-	initialWorkflowNodes,
 	type WorkflowBlock,
 	workflowBlocks,
 } from "@/packages/builder/builder-data.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import { defaultVenueId, type VenueId } from "@/packages/venues/venue-data.ts";
+import { getRequestErrorMessage } from "@/util/errors.ts";
+import {
+	appendWorkflowHistory,
+	cloneWorkflowState,
+	createInitialWorkflowState,
+	serializeWorkflowBlock,
+	serializeWorkflowState,
+	toWorkflowPayload,
+	type WorkflowNodeModel,
+	type WorkflowState,
+	workflowHistoryLimit,
+} from "@/util/workflow.ts";
 import { BlockLibrary } from "./block-library.tsx";
 import { InspectorPanel } from "./inspector-panel.tsx";
 import { WorkflowCanvas } from "./workflow-canvas.tsx";
@@ -30,15 +44,6 @@ type WorkflowBuilderProps = {
 	marketId?: string;
 };
 
-type WorkflowNodeModel = Node<WorkflowBlock>;
-
-type WorkflowState = {
-	edges: Edge[];
-	nodes: WorkflowNodeModel[];
-};
-
-const historyLimit = 50;
-
 export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const [workflow, setWorkflow] = useState<WorkflowState>(
 		createInitialWorkflowState,
@@ -47,6 +52,10 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const [future, setFuture] = useState<WorkflowState[]>([]);
 	const [selectedNodeId, setSelectedNodeId] = useState<string>();
 	const [venue, setVenue] = useState<VenueId>(defaultVenueId);
+	const [publishedAutomationId, setPublishedAutomationId] = useState<string>();
+	const [statusMessage, setStatusMessage] = useState<string | null>(null);
+	const publishAutomation = usePublishAutomation();
+	const testRunAutomation = useTestRunAutomation();
 	const { market } = usePolymarketMarket(marketId);
 	const selectedMarket = market ? normalizeMarket(market) : null;
 	const workflowRef = useRef(workflow);
@@ -54,6 +63,16 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const selectedBlock = useMemo(
 		() => workflow.nodes.find((node) => node.id === selectedNodeId)?.data,
 		[workflow.nodes, selectedNodeId],
+	);
+	const automationPayload = useMemo(
+		() => ({
+			market_id: marketId,
+			market_title: selectedMarket?.title,
+			title: selectedMarket?.title ?? AppKeyword.UntitledWorkflow,
+			venue,
+			workflow: toWorkflowPayload(workflow),
+		}),
+		[marketId, selectedMarket?.title, venue, workflow],
 	);
 
 	useEffect(() => {
@@ -82,7 +101,9 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 				}
 
 				if (record) {
-					setPast((items) => appendHistory(items, cloneWorkflowState(current)));
+					setPast((items) =>
+						appendWorkflowHistory(items, cloneWorkflowState(current)),
+					);
 					setFuture([]);
 				}
 
@@ -180,7 +201,9 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 
 					const data = { ...node.data, ...updates };
 
-					if (serializeBlock(node.data) === serializeBlock(data)) {
+					if (
+						serializeWorkflowBlock(node.data) === serializeWorkflowBlock(data)
+					) {
 						return node;
 					}
 
@@ -211,7 +234,7 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			return;
 		}
 
-		setPast((items) => appendHistory(items, snapshot));
+		setPast((items) => appendWorkflowHistory(items, snapshot));
 		setFuture([]);
 	}, []);
 
@@ -230,7 +253,7 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			setFuture((redoItems) =>
 				[cloneWorkflowState(workflowRef.current), ...redoItems].slice(
 					0,
-					historyLimit,
+					workflowHistoryLimit,
 				),
 			);
 			setWorkflow(cloneWorkflowState(previous));
@@ -252,13 +275,46 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			}
 
 			setPast((undoItems) =>
-				appendHistory(undoItems, cloneWorkflowState(workflowRef.current)),
+				appendWorkflowHistory(
+					undoItems,
+					cloneWorkflowState(workflowRef.current),
+				),
 			);
 			setWorkflow(cloneWorkflowState(next));
 
 			return items.slice(1);
 		});
 	}, []);
+
+	const handlePublish = useCallback(async () => {
+		setStatusMessage(null);
+
+		try {
+			const response = await publishAutomation.mutateAsync(automationPayload);
+			setPublishedAutomationId(response.data.id);
+			setStatusMessage("Automation published and ready to run.");
+		} catch (error) {
+			setStatusMessage(
+				getRequestErrorMessage(error, "Unable to publish automation"),
+			);
+		}
+	}, [automationPayload, publishAutomation]);
+
+	const handleTestRun = useCallback(async () => {
+		setStatusMessage(null);
+
+		try {
+			const response = await testRunAutomation.mutateAsync({
+				...automationPayload,
+				automation_id: publishedAutomationId,
+			});
+			setStatusMessage(response.data.message);
+		} catch (error) {
+			setStatusMessage(
+				getRequestErrorMessage(error, "Unable to test run automation"),
+			);
+		}
+	}, [automationPayload, publishedAutomationId, testRunAutomation]);
 
 	return (
 		<DashboardLayout contentClassName="p-0">
@@ -269,10 +325,15 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 					<WorkflowToolbar
 						canRedo={future.length > 0}
 						canUndo={past.length > 0}
+						isPublishing={publishAutomation.isPending}
+						isTesting={testRunAutomation.isPending}
 						market={selectedMarket}
+						onPublish={handlePublish}
 						onRedo={handleRedo}
+						onTestRun={handleTestRun}
 						onUndo={handleUndo}
 						onVenueChange={setVenue}
+						statusMessage={statusMessage}
 						venue={venue}
 					/>
 					<WorkflowCanvas
@@ -296,64 +357,4 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 			</div>
 		</DashboardLayout>
 	);
-}
-
-function createInitialWorkflowState(): WorkflowState {
-	return {
-		edges: initialWorkflowEdges.map((edge) => ({
-			...edge,
-			style: { ...edge.style },
-		})),
-		nodes: initialWorkflowNodes.map((node) => ({
-			...node,
-			data: { ...node.data },
-			position: { ...node.position },
-		})),
-	};
-}
-
-function appendHistory(items: WorkflowState[], state: WorkflowState) {
-	return items.concat(state).slice(-historyLimit);
-}
-
-function cloneWorkflowState(state: WorkflowState): WorkflowState {
-	return {
-		edges: state.edges.map((edge) => ({
-			...edge,
-			style: edge.style ? { ...edge.style } : undefined,
-		})),
-		nodes: state.nodes.map((node) => ({
-			...node,
-			data: { ...node.data },
-			position: { ...node.position },
-		})),
-	};
-}
-
-function serializeWorkflowState(state: WorkflowState) {
-	return JSON.stringify({
-		edges: state.edges.map((edge) => ({
-			id: edge.id,
-			source: edge.source,
-			target: edge.target,
-			type: edge.type,
-		})),
-		nodes: state.nodes.map((node) => ({
-			data: serializeBlock(node.data),
-			id: node.id,
-			position: node.position,
-			type: node.type,
-		})),
-	});
-}
-
-function serializeBlock(block: WorkflowBlock) {
-	return JSON.stringify({
-		description: block.description,
-		id: block.id,
-		kind: block.kind,
-		title: block.title,
-		value: block.value,
-		venue: block.venue,
-	});
 }
