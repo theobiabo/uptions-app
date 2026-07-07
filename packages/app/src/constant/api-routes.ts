@@ -3,6 +3,12 @@ const API_VERSION = "/api/v1";
 const route = (path: string) => `${API_VERSION}${path}`;
 
 export const API_ROUTES = {
+	automations: {
+		alerts: route("/automation-alerts"),
+		list: route("/automations"),
+		publish: route("/automations"),
+		testRun: route("/automations/test-run"),
+	},
 	auth: {
 		forgotPassword: route("/auth/forgot-password"),
 		login: route("/auth/login"),

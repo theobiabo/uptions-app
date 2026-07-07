@@ -63,7 +63,7 @@ export function formatMarketWindow(market: PolymarketMarket) {
 	return start ?? end ?? "Market schedule unavailable";
 }
 
-function formatDate(value: string | undefined) {
+export function formatDate(value: string | null | undefined) {
 	if (!value) {
 		return null;
 	}

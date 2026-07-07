@@ -4,6 +4,7 @@ import {
 	initialWorkflowNodes,
 	type WorkflowBlock,
 } from "@/packages/builder/builder-data.ts";
+import type { WorkflowPayload } from "@/packages/types/automation.types.ts";
 
 export type WorkflowNodeModel = Node<WorkflowBlock>;
 
@@ -50,7 +51,11 @@ export function cloneWorkflowState(state: WorkflowState): WorkflowState {
 }
 
 export function serializeWorkflowState(state: WorkflowState) {
-	return JSON.stringify({
+	return JSON.stringify(toWorkflowPayload(state));
+}
+
+export function toWorkflowPayload(state: WorkflowState): WorkflowPayload {
+	return {
 		edges: state.edges.map((edge) => ({
 			id: edge.id,
 			source: edge.source,
@@ -58,12 +63,19 @@ export function serializeWorkflowState(state: WorkflowState) {
 			type: edge.type,
 		})),
 		nodes: state.nodes.map((node) => ({
-			data: serializeWorkflowBlock(node.data),
+			data: {
+				description: node.data.description,
+				id: node.data.id,
+				kind: node.data.kind,
+				title: node.data.title,
+				value: node.data.value,
+				venue: node.data.venue,
+			},
 			id: node.id,
 			position: node.position,
 			type: node.type,
 		})),
-	});
+	};
 }
 
 export function serializeWorkflowBlock(block: WorkflowBlock) {

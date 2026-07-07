@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { LogOut, UserRound } from "lucide-react";
 import { useState } from "react";
 import { AuthPanel } from "@/components/auth/auth-panel";
@@ -15,8 +16,16 @@ export default function DashboardHeader() {
 	const NotificationsIcon = dashboardActions.notificationsIcon;
 	const { user } = useCurrentUser();
 	const logout = useLogout();
+	const navigate = useNavigate();
 	const [authOpen, setAuthOpen] = useState(false);
+	const [logoutOpen, setLogoutOpen] = useState(false);
 	const accountLabel = user?.email ?? "Sign in";
+
+	const handleConfirmLogout = () => {
+		logout();
+		setLogoutOpen(false);
+		navigate({ to: "/" });
+	};
 
 	return (
 		<header className="sticky top-0 z-30 border-b border-[var(--app-border)] bg-[var(--dashboard-bg)]/95 backdrop-blur">
@@ -60,16 +69,42 @@ export default function DashboardHeader() {
 								<UserRound className="size-3.5 text-primary" />
 								<span className="truncate">{accountLabel}</span>
 							</div>
-							<Button
-								aria-label="Sign out"
-								className="size-9 bg-transparent text-app-muted-fg hover:bg-app-muted hover:text-app-fg"
-								onClick={logout}
-								size="icon"
-								type="button"
-								variant="ghost"
+							<CustomModal
+								className="border-app-border bg-app-card text-app-fg"
+								description="You will need to sign in again to manage automations and connected venues."
+								onOpenChange={setLogoutOpen}
+								open={logoutOpen}
+								title="Sign out of Uptions?"
+								trigger={
+									<Button
+										aria-label="Sign out"
+										className="size-9 bg-transparent text-app-muted-fg hover:bg-app-muted hover:text-app-fg"
+										size="icon"
+										type="button"
+										variant="ghost"
+									>
+										<LogOut className="size-4" />
+									</Button>
+								}
 							>
-								<LogOut className="size-4" />
-							</Button>
+								<div className="flex justify-end gap-3 pt-2">
+									<Button
+										className="border border-app-border bg-transparent text-app-fg hover:bg-app-muted"
+										onClick={() => setLogoutOpen(false)}
+										type="button"
+										variant="ghost"
+									>
+										Cancel
+									</Button>
+									<Button
+										className="bg-primary text-primary-foreground hover:bg-primary/90"
+										onClick={handleConfirmLogout}
+										type="button"
+									>
+										Confirm logout
+									</Button>
+								</div>
+							</CustomModal>
 						</div>
 					) : (
 						<CustomModal

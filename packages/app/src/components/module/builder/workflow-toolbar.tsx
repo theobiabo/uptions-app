@@ -11,19 +11,29 @@ type WorkflowToolbarProps = {
 	canRedo: boolean;
 	canUndo: boolean;
 	market?: Market | null;
+	isPublishing?: boolean;
+	isTesting?: boolean;
+	onPublish: () => void;
 	onRedo: () => void;
+	onTestRun: () => void;
 	onUndo: () => void;
 	onVenueChange: (venue: VenueId) => void;
+	statusMessage?: string | null;
 	venue: VenueId;
 };
 
 export function WorkflowToolbar({
 	canRedo,
 	canUndo,
+	isPublishing = false,
+	isTesting = false,
 	market,
+	onPublish,
 	onRedo,
+	onTestRun,
 	onUndo,
 	onVenueChange,
+	statusMessage,
 	venue,
 }: WorkflowToolbarProps) {
 	return (
@@ -46,6 +56,11 @@ export function WorkflowToolbar({
 						))}
 					</select>
 				</label>
+				{statusMessage ? (
+					<p className="mt-1 truncate text-xs font-medium text-primary">
+						{statusMessage}
+					</p>
+				) : null}
 			</div>
 
 			<div className="flex items-center gap-6">
@@ -85,16 +100,25 @@ export function WorkflowToolbar({
 
 				<Button
 					className="h-9 border-0 bg-transparent px-2 text-sm font-medium text-[var(--app-fg)] hover:bg-[var(--app-muted)]"
+					disabled={isPublishing || isTesting}
+					onClick={onTestRun}
 					type="button"
 					variant="ghost"
 				>
 					<Play className="size-4" />
-					{AppKeyword.TestRun}
+					{isTesting ? "Testing..." : AppKeyword.TestRun}
 				</Button>
 
-				<Button className="h-10 bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+				<Button
+					className="h-10 bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+					disabled={isPublishing || isTesting}
+					onClick={onPublish}
+					type="button"
+				>
 					<Wallet className="size-4 md:hidden" />
-					<span className="hidden md:inline">{AppKeyword.Publish}</span>
+					<span className="hidden md:inline">
+						{isPublishing ? "Publishing..." : AppKeyword.Publish}
+					</span>
 				</Button>
 
 				<a

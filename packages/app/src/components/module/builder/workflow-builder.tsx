@@ -9,8 +9,13 @@ import {
 	type XYPosition,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppKeyword } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
+import {
+	usePublishAutomation,
+	useTestRunAutomation,
+} from "@/hooks/use-automations.ts";
 import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
 import {
 	type WorkflowBlock,
@@ -18,12 +23,14 @@ import {
 } from "@/packages/builder/builder-data.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import { defaultVenueId, type VenueId } from "@/packages/venues/venue-data.ts";
+import { getRequestErrorMessage } from "@/util/errors.ts";
 import {
 	appendWorkflowHistory,
 	cloneWorkflowState,
 	createInitialWorkflowState,
 	serializeWorkflowBlock,
 	serializeWorkflowState,
+	toWorkflowPayload,
 	type WorkflowNodeModel,
 	type WorkflowState,
 	workflowHistoryLimit,
@@ -45,6 +52,10 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const [future, setFuture] = useState<WorkflowState[]>([]);
 	const [selectedNodeId, setSelectedNodeId] = useState<string>();
 	const [venue, setVenue] = useState<VenueId>(defaultVenueId);
+	const [publishedAutomationId, setPublishedAutomationId] = useState<string>();
+	const [statusMessage, setStatusMessage] = useState<string | null>(null);
+	const publishAutomation = usePublishAutomation();
+	const testRunAutomation = useTestRunAutomation();
 	const { market } = usePolymarketMarket(marketId);
 	const selectedMarket = market ? normalizeMarket(market) : null;
 	const workflowRef = useRef(workflow);
@@ -52,6 +63,16 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 	const selectedBlock = useMemo(
 		() => workflow.nodes.find((node) => node.id === selectedNodeId)?.data,
 		[workflow.nodes, selectedNodeId],
+	);
+	const automationPayload = useMemo(
+		() => ({
+			market_id: marketId,
+			market_title: selectedMarket?.title,
+			title: selectedMarket?.title ?? AppKeyword.UntitledWorkflow,
+			venue,
+			workflow: toWorkflowPayload(workflow),
+		}),
+		[marketId, selectedMarket?.title, venue, workflow],
 	);
 
 	useEffect(() => {
@@ -265,6 +286,36 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 		});
 	}, []);
 
+	const handlePublish = useCallback(async () => {
+		setStatusMessage(null);
+
+		try {
+			const response = await publishAutomation.mutateAsync(automationPayload);
+			setPublishedAutomationId(response.data.id);
+			setStatusMessage("Automation published and ready to run.");
+		} catch (error) {
+			setStatusMessage(
+				getRequestErrorMessage(error, "Unable to publish automation"),
+			);
+		}
+	}, [automationPayload, publishAutomation]);
+
+	const handleTestRun = useCallback(async () => {
+		setStatusMessage(null);
+
+		try {
+			const response = await testRunAutomation.mutateAsync({
+				...automationPayload,
+				automation_id: publishedAutomationId,
+			});
+			setStatusMessage(response.data.message);
+		} catch (error) {
+			setStatusMessage(
+				getRequestErrorMessage(error, "Unable to test run automation"),
+			);
+		}
+	}, [automationPayload, publishedAutomationId, testRunAutomation]);
+
 	return (
 		<DashboardLayout contentClassName="p-0">
 			<div className="relative flex h-[calc(100dvh-4rem)] min-h-[720px] w-full overflow-hidden bg-builder-bg text-[var(--app-fg)]">
@@ -274,10 +325,15 @@ export function WorkflowBuilder({ marketId }: WorkflowBuilderProps) {
 					<WorkflowToolbar
 						canRedo={future.length > 0}
 						canUndo={past.length > 0}
+						isPublishing={publishAutomation.isPending}
+						isTesting={testRunAutomation.isPending}
 						market={selectedMarket}
+						onPublish={handlePublish}
 						onRedo={handleRedo}
+						onTestRun={handleTestRun}
 						onUndo={handleUndo}
 						onVenueChange={setVenue}
+						statusMessage={statusMessage}
 						venue={venue}
 					/>
 					<WorkflowCanvas

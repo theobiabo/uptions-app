@@ -86,7 +86,10 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 
 	return (
 		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-			<div className="mx-auto grid w-full max-w-[1500px] gap-5 text-app-fg">
+      <div className=" mx-auto grid w-full
+        max-w-[1500px]
+		 gap-5 text-app-fg">
+
 				<Link
 					className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-app-muted-fg no-underline hover:text-app-fg"
 					to="/markets"
@@ -95,7 +98,9 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 					{AppKeyword.Markets}
 				</Link>
 
-				<section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="grid gap-5
+
+				">
 					<div className="grid gap-5">
 						<Panel className="p-5">
 							<div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
@@ -223,7 +228,7 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 						</Panel>
 					</div>
 
-					<aside className="grid h-fit gap-5">
+					{/*<aside className="grid h-fit gap-5">
 						<TopHoldersPnl />
 						<OutcomePanel
 							label={leadingOutcome.label}
@@ -239,7 +244,7 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 							outcomeOne={outcomeOne}
 							outcomeTwo={outcomeTwo}
 						/>
-					</aside>
+					</aside>*/}
 				</section>
 			</div>
 		</DashboardLayout>
