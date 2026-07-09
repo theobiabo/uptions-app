@@ -3,8 +3,18 @@ import { DraftingCompass } from "lucide-react";
 import { AppKeyword, BuilderFieldName } from "@/common";
 import { Typography } from "@/components/typography/typography.tsx";
 import type { WorkflowBlock } from "@/packages/builder/builder-data.ts";
-import { workflowBlockTone } from "@/packages/builder/builder-data.ts";
+import {
+	formatWorkflowBlockValue,
+	workflowBlockTone,
+} from "@/packages/builder/builder-data.ts";
 import type { Market } from "@/packages/markets/market-utils.ts";
+import {
+	type WorkflowParamValue,
+	workflowActionType,
+	workflowMessageChannel,
+	workflowOrderType,
+	workflowOutcome,
+} from "@/packages/types/automation.types.ts";
 import type { VenueId } from "@/packages/venues/venue-data.ts";
 import { getVenueConfig, venues } from "@/packages/venues/venue-data.ts";
 
@@ -22,6 +32,20 @@ export function InspectorPanel({
 	venue,
 }: InspectorPanelProps) {
 	const activeVenue = getVenueConfig(selectedBlock?.venue ?? venue);
+	const updateParams = (updates: Record<string, WorkflowParamValue>) => {
+		if (!selectedBlock) {
+			return;
+		}
+
+		const params = { ...selectedBlock.params, ...updates };
+		onUpdateBlock({
+			params,
+			value: formatWorkflowBlockValue({
+				action: selectedBlock.action,
+				params,
+			}),
+		});
+	};
 
 	return (
 		<aside className="relative z-10 hidden min-h-0 w-[300px] border-l border-[var(--app-border)] bg-builder-panel/90 backdrop-blur xl:flex xl:flex-col">
@@ -83,11 +107,16 @@ export function InspectorPanel({
 								</select>
 							</label>
 						</div>
+						<WorkflowParamFields
+							block={selectedBlock}
+							onUpdateParams={updateParams}
+						/>
 						<div className="mt-6">
 							<ConfigInput
+								disabled
 								label={AppKeyword.Value}
 								name={BuilderFieldName.Value}
-								onChange={(value) => onUpdateBlock({ value })}
+								onChange={() => undefined}
 								value={selectedBlock.value}
 							/>
 						</div>
@@ -135,15 +164,182 @@ export function InspectorPanel({
 	);
 }
 
+function WorkflowParamFields({
+	block,
+	onUpdateParams,
+}: {
+	block: WorkflowBlock;
+	onUpdateParams: (updates: Record<string, WorkflowParamValue>) => void;
+}) {
+	if (block.action === workflowActionType.triggerPriceMoves) {
+		return <OutcomeField block={block} onUpdateParams={onUpdateParams} />;
+	}
+
+	if (block.action === workflowActionType.triggerVolumeMoves) {
+		return (
+			<div className="mt-6">
+				<ConfigInput
+					label="Minimum change %"
+					onChange={(value) =>
+						onUpdateParams({ minimum_change_percent: toNumber(value) })
+					}
+					type="number"
+					value={String(block.params.minimum_change_percent ?? "")}
+				/>
+			</div>
+		);
+	}
+
+	if (block.action === workflowActionType.triggerTimeCheck) {
+		return (
+			<div className="mt-6">
+				<ConfigInput
+					label="Interval"
+					onChange={(value) => onUpdateParams({ interval: value })}
+					value={String(block.params.interval ?? "")}
+				/>
+			</div>
+		);
+	}
+
+	if (
+		block.action === workflowActionType.conditionOutcomePriceAbove ||
+		block.action === workflowActionType.conditionOutcomePriceBelow
+	) {
+		return (
+			<>
+				<OutcomeField block={block} onUpdateParams={onUpdateParams} />
+				<div className="mt-6">
+					<ConfigInput
+						label="Target price"
+						onChange={(value) => onUpdateParams({ price: toNumber(value) })}
+						type="number"
+						value={String(block.params.price ?? "")}
+					/>
+				</div>
+			</>
+		);
+	}
+
+	if (block.action === workflowActionType.conditionVolumeAbove) {
+		return (
+			<div className="mt-6">
+				<ConfigInput
+					label="Target volume"
+					onChange={(value) => onUpdateParams({ volume: toNumber(value) })}
+					type="number"
+					value={String(block.params.volume ?? "")}
+				/>
+			</div>
+		);
+	}
+
+	if (
+		block.action === workflowActionType.buy ||
+		block.action === workflowActionType.sell
+	) {
+		return (
+			<>
+				<OutcomeField block={block} onUpdateParams={onUpdateParams} />
+				<div className="mt-6">
+					<label className="grid gap-2">
+						<span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
+							Order type
+						</span>
+						<select
+							className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
+							onChange={(event) =>
+								onUpdateParams({ order_type: event.target.value })
+							}
+							value={String(
+								block.params.order_type ?? workflowOrderType.market,
+							)}
+						>
+							<option value={workflowOrderType.market}>Market</option>
+							<option value={workflowOrderType.limit}>Limit</option>
+						</select>
+					</label>
+				</div>
+				<div className="mt-6">
+					<ConfigInput
+						label="Amount"
+						onChange={(value) => onUpdateParams({ amount: toNumber(value) })}
+						type="number"
+						value={String(block.params.amount ?? "")}
+					/>
+				</div>
+			</>
+		);
+	}
+
+	return (
+		<>
+			<div className="mt-6">
+				<label className="grid gap-2">
+					<span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
+						Channel
+					</span>
+					<select
+						className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
+						onChange={(event) =>
+							onUpdateParams({ channel: event.target.value })
+						}
+						value={String(block.params.channel ?? workflowMessageChannel.inApp)}
+					>
+						<option value={workflowMessageChannel.inApp}>In app</option>
+					</select>
+				</label>
+			</div>
+			<div className="mt-6">
+				<ConfigTextarea
+					label="Message"
+					onChange={(value) => onUpdateParams({ message: value })}
+					value={String(block.params.message ?? "")}
+				/>
+			</div>
+		</>
+	);
+}
+
+function OutcomeField({
+	block,
+	onUpdateParams,
+}: {
+	block: WorkflowBlock;
+	onUpdateParams: (updates: Record<string, WorkflowParamValue>) => void;
+}) {
+	return (
+		<div className="mt-6">
+			<label className="grid gap-2">
+				<span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
+					Outcome
+				</span>
+				<select
+					className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
+					onChange={(event) => onUpdateParams({ outcome: event.target.value })}
+					value={String(block.params.outcome ?? workflowOutcome.yes)}
+				>
+					<option value={workflowOutcome.yes}>YES</option>
+					<option value={workflowOutcome.no}>NO</option>
+				</select>
+			</label>
+		</div>
+	);
+}
+
 function ConfigInput({
+	disabled,
 	label,
 	name,
 	onChange,
+	type = "text",
 	value,
 }: {
+	disabled?: boolean;
 	label: string;
 	name?: string;
 	onChange: (value: string) => void;
+	type?: string;
 	value: string;
 }) {
 	return (
@@ -152,9 +348,11 @@ function ConfigInput({
 				{label}
 			</span>
 			<input
-				className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
+				className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary disabled:opacity-70"
+				disabled={disabled}
 				name={name}
 				onChange={(event) => onChange(event.target.value)}
+				type={type}
 				value={value}
 			/>
 		</label>
@@ -205,4 +403,10 @@ function MarketMetric({
 			</Typography>
 		</div>
 	);
+}
+
+function toNumber(value: string) {
+	const number = Number(value);
+
+	return Number.isFinite(number) ? number : null;
 }

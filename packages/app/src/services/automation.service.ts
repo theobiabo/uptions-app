@@ -3,9 +3,11 @@ import type { ApiResponse } from "@/packages/types/api.types.ts";
 import type {
 	Automation,
 	AutomationAlert,
+	MarkAlertsReadResponse,
 	PublishAutomationRequest,
 	TestRunAutomationRequest,
 	TestRunAutomationResponse,
+	UpdateAutomationStatusRequest,
 } from "@/packages/types/automation.types.ts";
 import { uptionsRequest } from "@/services/api.service.ts";
 
@@ -16,9 +18,27 @@ export class AutomationService {
 		);
 	}
 
+	delete(automationId: string) {
+		return uptionsRequest.DELETE<ApiResponse<string>>(
+			API_ROUTES.automations.item(automationId),
+		);
+	}
+
 	list() {
 		return uptionsRequest.GET<ApiResponse<Automation[]>>(
 			API_ROUTES.automations.list,
+		);
+	}
+
+	markAlertRead(alertId: string) {
+		return uptionsRequest.PATCH<ApiResponse<AutomationAlert>>(
+			API_ROUTES.automations.alert(alertId),
+		);
+	}
+
+	markAlertsRead() {
+		return uptionsRequest.PATCH<ApiResponse<MarkAlertsReadResponse>>(
+			API_ROUTES.automations.alertsRead,
 		);
 	}
 
@@ -29,11 +49,25 @@ export class AutomationService {
 		>(API_ROUTES.automations.publish, payload);
 	}
 
+	setStatus(automationId: string, payload: UpdateAutomationStatusRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<Automation>,
+			UpdateAutomationStatusRequest
+		>(API_ROUTES.automations.status(automationId), payload);
+	}
+
 	testRun(payload: TestRunAutomationRequest) {
 		return uptionsRequest.POST<
 			ApiResponse<TestRunAutomationResponse>,
 			TestRunAutomationRequest
 		>(API_ROUTES.automations.testRun, payload);
+	}
+
+	update(automationId: string, payload: PublishAutomationRequest) {
+		return uptionsRequest.PUT<
+			ApiResponse<Automation>,
+			PublishAutomationRequest
+		>(API_ROUTES.automations.item(automationId), payload);
 	}
 }
 

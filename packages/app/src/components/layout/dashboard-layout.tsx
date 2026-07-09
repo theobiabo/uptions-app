@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import DashboardHeader from "@/components/headers/dashboard-header";
+import { useAutomationAlertStream } from "@/hooks/use-automations.ts";
 import { cn } from "@/lib/utils.ts";
 
 type DashboardLayoutProps = {
@@ -14,6 +15,8 @@ export function DashboardLayout({
 	className,
 	contentClassName,
 }: DashboardLayoutProps) {
+	useAutomationAlertStream();
+
 	return (
 		<main
 			className={cn(

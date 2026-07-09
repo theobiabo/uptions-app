@@ -2,6 +2,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import { LoaderScreen } from "@/components/skeleton/loader-screen";
 import { ThemeProvider } from "@/components/theme/theme-provider.tsx";
@@ -146,6 +147,7 @@ function RootDocument({ children }: { children: ReactNode }) {
 			<body>
 				<QueryProvider>
 					<ThemeProvider>{children}</ThemeProvider>
+					<Toaster closeButton position="top-right" richColors />
 				</QueryProvider>
 				<TanStackDevtools
 					config={{
