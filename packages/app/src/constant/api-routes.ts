@@ -4,7 +4,11 @@ const route = (path: string) => `${API_VERSION}${path}`;
 
 export const API_ROUTES = {
 	automations: {
+		alert: (alertId: string) =>
+			route(`/automation-alerts/${encodeURIComponent(alertId)}/read`),
 		alerts: route("/automation-alerts"),
+		alertsRead: route("/automation-alerts/read"),
+		alertStream: route("/automation-alerts/stream"),
 		item: (automationId: string) =>
 			route(`/automations/${encodeURIComponent(automationId)}`),
 		list: route("/automations"),

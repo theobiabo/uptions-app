@@ -28,7 +28,6 @@ import {
 } from "@/packages/builder/builder-data.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import type { PublishAutomationRequest } from "@/packages/types/automation.types.ts";
-import { automationProvider } from "@/packages/types/automation.types.ts";
 import {
 	defaultVenueId,
 	getVenueConfig,
@@ -104,7 +103,6 @@ export function WorkflowBuilder({
 				id: marketId,
 				title: selectedMarket.title,
 			},
-			provider: automationProvider.polymarket,
 			title: selectedMarket.title,
 			workflow: toWorkflowPayload(workflow),
 		};
@@ -391,10 +389,7 @@ export function WorkflowBuilder({
 			return;
 		}
 
-		const validationError = validateWorkflowForPublish(
-			workflow,
-			automationPayload.provider,
-		);
+		const validationError = validateWorkflowForPublish(workflow);
 
 		if (validationError) {
 			toast.error(validationError);
@@ -471,10 +466,7 @@ export function WorkflowBuilder({
 			return;
 		}
 
-		const validationError = validateWorkflowForPublish(
-			workflow,
-			automationPayload.provider,
-		);
+		const validationError = validateWorkflowForPublish(workflow);
 
 		if (validationError) {
 			toast.error(validationError);

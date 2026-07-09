@@ -3,6 +3,7 @@ import type { ApiResponse } from "@/packages/types/api.types.ts";
 import type {
 	Automation,
 	AutomationAlert,
+	MarkAlertsReadResponse,
 	PublishAutomationRequest,
 	TestRunAutomationRequest,
 	TestRunAutomationResponse,
@@ -26,6 +27,18 @@ export class AutomationService {
 	list() {
 		return uptionsRequest.GET<ApiResponse<Automation[]>>(
 			API_ROUTES.automations.list,
+		);
+	}
+
+	markAlertRead(alertId: string) {
+		return uptionsRequest.PATCH<ApiResponse<AutomationAlert>>(
+			API_ROUTES.automations.alert(alertId),
+		);
+	}
+
+	markAlertsRead() {
+		return uptionsRequest.PATCH<ApiResponse<MarkAlertsReadResponse>>(
+			API_ROUTES.automations.alertsRead,
 		);
 	}
 

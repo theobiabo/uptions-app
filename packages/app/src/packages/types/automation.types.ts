@@ -99,7 +99,7 @@ export type WorkflowPayload = {
 
 export type PublishAutomationRequest = {
 	market: AutomationMarketPayload;
-	provider: AutomationProvider;
+	provider?: AutomationProvider;
 	title: string;
 	workflow: WorkflowPayload;
 };
@@ -132,8 +132,13 @@ export type AutomationAlert = {
 	id: string;
 	message: string;
 	meta: Record<string, unknown>;
+	read_at: string | null;
 	status: string;
 	title: string;
+};
+
+export type MarkAlertsReadResponse = {
+	updated: number;
 };
 
 export type TestRunAutomationResponse = {
