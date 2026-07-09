@@ -25,6 +25,15 @@ export const API_ROUTES = {
 		signup: route("/auth/signup"),
 		verifyEmail: route("/auth/verify-email"),
 	},
+	mcp: {
+		approval: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}`),
+		approvals: route("/mcp/approvals"),
+		approve: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}/approve`),
+		reject: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}/reject`),
+	},
 	polymarket: {
 		market: (marketId: string) =>
 			route(`/polymarket/markets/${encodeURIComponent(marketId)}`),

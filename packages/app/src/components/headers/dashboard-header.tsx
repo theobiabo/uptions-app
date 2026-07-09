@@ -15,9 +15,12 @@ import {
 } from "@/components/ui/sheet.tsx";
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
+	useApproveMcpApproval,
 	useAutomationAlerts,
+	useClearAutomationAlerts,
 	useMarkAllAutomationAlertsRead,
 	useMarkAutomationAlertRead,
+	useRejectMcpApproval,
 } from "@/hooks/use-automations.ts";
 import {
 	dashboardActions,
@@ -32,12 +35,18 @@ export default function DashboardHeader() {
 	const { user } = useCurrentUser();
 	const logout = useLogout();
 	const { alerts, isLoading: alertsLoading } = useAutomationAlerts();
+	const approveMcpApproval = useApproveMcpApproval();
+	const clearAlerts = useClearAutomationAlerts();
 	const markAlertRead = useMarkAutomationAlertRead();
 	const markAllAlertsRead = useMarkAllAutomationAlertsRead();
+	const rejectMcpApproval = useRejectMcpApproval();
 	const navigate = useNavigate();
 	const [authOpen, setAuthOpen] = useState(false);
 	const [logoutOpen, setLogoutOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
+	const [selectedAlert, setSelectedAlert] = useState<AutomationAlert | null>(
+		null,
+	);
 	const accountLabel = user?.email ?? "Sign in";
 	const unreadCount = useMemo(
 		() => alerts.filter((alert) => !alert.read_at).length,
@@ -53,6 +62,20 @@ export default function DashboardHeader() {
 	const handleNotificationsOpenChange = (open: boolean) => {
 		setNotificationsOpen(open);
 	};
+
+	const handleOpenNotification = (alert: AutomationAlert) => {
+		setSelectedAlert(alert);
+
+		if (!alert.read_at) {
+			markAlertRead.mutate(alert.id);
+		}
+	};
+
+	const selectedApprovalId = getApprovalId(selectedAlert);
+	const selectedApprovalPending = selectedAlert
+		? getMetaString(selectedAlert.meta, "type") === "mcp_approval_requested" &&
+			selectedAlert.status === "pending"
+		: false;
 
 	return (
 		<header className="sticky top-0 z-30 border-b border-[var(--app-border)] bg-[var(--dashboard-bg)]/95 backdrop-blur">
@@ -111,19 +134,32 @@ export default function DashboardHeader() {
 											Recent automation activity and alerts.
 										</SheetDescription>
 									</div>
-									{unreadCount > 0 ? (
-										<Button
-											className="h-8 border border-app-border bg-transparent px-3 text-xs text-app-fg hover:bg-app-muted"
-											disabled={markAllAlertsRead.isPending}
-											onClick={() => markAllAlertsRead.mutate()}
-											type="button"
-											variant="ghost"
-										>
-											{markAllAlertsRead.isPending
-												? "Saving..."
-												: "Mark all read"}
-										</Button>
-									) : null}
+									<div className="flex flex-wrap justify-end gap-2">
+										{alerts.length > 0 ? (
+											<Button
+												className="h-8 border border-app-border bg-transparent px-3 text-xs text-app-fg hover:bg-app-muted"
+												disabled={clearAlerts.isPending}
+												onClick={() => clearAlerts.mutate()}
+												type="button"
+												variant="ghost"
+											>
+												{clearAlerts.isPending ? "Clearing..." : "Clear all"}
+											</Button>
+										) : null}
+										{unreadCount > 0 ? (
+											<Button
+												className="h-8 border border-app-border bg-transparent px-3 text-xs text-app-fg hover:bg-app-muted"
+												disabled={markAllAlertsRead.isPending}
+												onClick={() => markAllAlertsRead.mutate()}
+												type="button"
+												variant="ghost"
+											>
+												{markAllAlertsRead.isPending
+													? "Saving..."
+													: "Mark all read"}
+											</Button>
+										) : null}
+									</div>
 								</div>
 							</SheetHeader>
 							<div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
@@ -141,6 +177,7 @@ export default function DashboardHeader() {
 												isMarkingRead={markAlertRead.isPending}
 												key={alert.id}
 												onMarkRead={() => markAlertRead.mutate(alert.id)}
+												onOpen={() => handleOpenNotification(alert)}
 											/>
 										))}
 									</div>
@@ -159,6 +196,77 @@ export default function DashboardHeader() {
 							</div>
 						</SheetContent>
 					</Sheet>
+					<CustomModal
+						className="border-app-border bg-app-card text-app-fg sm:max-w-2xl"
+						description={
+							selectedAlert
+								? (formatDate(selectedAlert.created_at) ?? undefined)
+								: undefined
+						}
+						onOpenChange={(open) => {
+							if (!open) {
+								setSelectedAlert(null);
+							}
+						}}
+						open={Boolean(selectedAlert)}
+						title={selectedAlert?.title ?? "Notification"}
+					>
+						{selectedAlert ? (
+							<div className="space-y-5">
+								<div className="flex flex-wrap items-center gap-2">
+									<span className="rounded-full bg-app-muted px-3 py-1 text-xs font-semibold capitalize text-primary">
+										{selectedAlert.status}
+									</span>
+									{selectedApprovalPending ? (
+										<span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+											Approval required
+										</span>
+									) : null}
+								</div>
+								<p className="text-sm leading-6 text-app-muted-fg">
+									{selectedAlert.message}
+								</p>
+								<NotificationMeta meta={selectedAlert.meta} />
+								{selectedApprovalPending && selectedApprovalId ? (
+									<div className="flex justify-end gap-3 border-t border-app-border pt-4">
+										<Button
+											className="border border-app-border bg-transparent text-app-fg hover:bg-app-muted"
+											disabled={
+												rejectMcpApproval.isPending ||
+												approveMcpApproval.isPending
+											}
+											onClick={() =>
+												rejectMcpApproval.mutate(selectedApprovalId, {
+													onSuccess: () => setSelectedAlert(null),
+												})
+											}
+											type="button"
+											variant="ghost"
+										>
+											{rejectMcpApproval.isPending ? "Rejecting..." : "Reject"}
+										</Button>
+										<Button
+											className="bg-primary text-primary-foreground hover:bg-primary/90"
+											disabled={
+												approveMcpApproval.isPending ||
+												rejectMcpApproval.isPending
+											}
+											onClick={() =>
+												approveMcpApproval.mutate(selectedApprovalId, {
+													onSuccess: () => setSelectedAlert(null),
+												})
+											}
+											type="button"
+										>
+											{approveMcpApproval.isPending
+												? "Approving..."
+												: "Approve"}
+										</Button>
+									</div>
+								) : null}
+							</div>
+						) : null}
+					</CustomModal>
 					<ThemeToggle />
 					{user ? (
 						<div className="flex items-center gap-2">
@@ -236,44 +344,48 @@ function NotificationItem({
 	alert,
 	isMarkingRead,
 	onMarkRead,
+	onOpen,
 }: {
 	alert: AutomationAlert;
 	isMarkingRead: boolean;
 	onMarkRead: () => void;
+	onOpen: () => void;
 }) {
 	const unread = !alert.read_at;
 
 	return (
-		<article
-			className={`border p-4 ${
+		<div
+			className={`border p-4 transition hover:border-primary/60 ${
 				unread
 					? "border-primary/50 bg-primary/10"
 					: "border-app-border bg-app-muted"
 			}`}
 		>
-			<div className="flex items-start justify-between gap-3">
-				<div className="min-w-0">
-					<div className="flex flex-wrap items-center gap-2">
-						<p className="text-sm font-semibold text-app-fg">{alert.title}</p>
-						{unread ? (
-							<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-primary-foreground">
-								New
-							</span>
-						) : null}
+			<button className="w-full text-left" onClick={onOpen} type="button">
+				<div className="flex items-start justify-between gap-3">
+					<div className="min-w-0">
+						<div className="flex flex-wrap items-center gap-2">
+							<p className="text-sm font-semibold text-app-fg">{alert.title}</p>
+							{unread ? (
+								<span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-primary-foreground">
+									New
+								</span>
+							) : null}
+						</div>
+						<p className="mt-2 text-sm leading-6 text-app-muted-fg">
+							{alert.message}
+						</p>
 					</div>
-					<p className="mt-2 text-sm leading-6 text-app-muted-fg">
-						{alert.message}
-					</p>
+					<span className="rounded-full bg-app-card px-3 py-1 text-xs font-semibold capitalize text-primary">
+						{alert.status}
+					</span>
 				</div>
-				<span className="rounded-full bg-app-card px-3 py-1 text-xs font-semibold capitalize text-primary">
-					{alert.status}
-				</span>
-			</div>
-			<div className="mt-4 flex items-center justify-between gap-3">
-				<p className="text-xs font-medium text-app-muted-fg">
+				<p className="mt-4 text-xs font-medium text-app-muted-fg">
 					{formatDate(alert.created_at)}
 				</p>
-				{unread ? (
+			</button>
+			{unread ? (
+				<div className="mt-4 flex justify-end">
 					<Button
 						className="h-8 border border-app-border bg-transparent px-3 text-xs text-app-fg hover:bg-app-card"
 						disabled={isMarkingRead}
@@ -283,8 +395,60 @@ function NotificationItem({
 					>
 						Mark read
 					</Button>
-				) : null}
-			</div>
-		</article>
+				</div>
+			) : null}
+		</div>
 	);
+}
+
+function NotificationMeta({ meta }: { meta: Record<string, unknown> }) {
+	const entries = Object.entries(meta).filter(
+		([, value]) => value !== undefined,
+	);
+
+	if (entries.length === 0) {
+		return null;
+	}
+
+	return (
+		<div className="rounded-lg border border-app-border bg-app-muted p-4">
+			<p className="text-xs font-bold uppercase tracking-[0.12em] text-app-muted-fg">
+				Details
+			</p>
+			<div className="mt-3 grid gap-3">
+				{entries.map(([key, value]) => (
+					<div className="grid gap-1" key={key}>
+						<p className="text-xs font-semibold capitalize text-app-fg">
+							{key.replaceAll("_", " ")}
+						</p>
+						<pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded bg-app-card p-3 text-xs leading-5 text-app-muted-fg">
+							{formatMetaValue(value)}
+						</pre>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function getApprovalId(alert: AutomationAlert | null) {
+	if (!alert) {
+		return null;
+	}
+
+	return getMetaString(alert.meta, "approval_id");
+}
+
+function getMetaString(meta: Record<string, unknown>, key: string) {
+	const value = meta[key];
+
+	return typeof value === "string" && value.trim() ? value : null;
+}
+
+function formatMetaValue(value: unknown) {
+	if (typeof value === "string") {
+		return value;
+	}
+
+	return JSON.stringify(value, null, 2);
 }

@@ -141,6 +141,27 @@ export type MarkAlertsReadResponse = {
 	updated: number;
 };
 
+export type ClearAlertsResponse = {
+	deleted: number;
+};
+
+export type McpApproval = {
+	created_at: string;
+	decided_at: string | null;
+	expires_at: string;
+	id: string;
+	payload: Record<string, unknown>;
+	result: Record<string, unknown> | null;
+	status: string;
+	tool: string;
+	updated_at: string;
+};
+
+export type McpApprovalDecisionResponse = {
+	approval: McpApproval;
+	result: Record<string, unknown> | null;
+};
+
 export type TestRunAutomationResponse = {
 	alert: AutomationAlert;
 	checked_blocks: number;

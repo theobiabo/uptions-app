@@ -3,6 +3,7 @@ import type { ApiResponse } from "@/packages/types/api.types.ts";
 import type {
 	Automation,
 	AutomationAlert,
+	ClearAlertsResponse,
 	MarkAlertsReadResponse,
 	PublishAutomationRequest,
 	TestRunAutomationRequest,
@@ -14,6 +15,12 @@ import { uptionsRequest } from "@/services/api.service.ts";
 export class AutomationService {
 	alerts() {
 		return uptionsRequest.GET<ApiResponse<AutomationAlert[]>>(
+			API_ROUTES.automations.alerts,
+		);
+	}
+
+	clearAlerts() {
+		return uptionsRequest.DELETE<ApiResponse<ClearAlertsResponse>>(
 			API_ROUTES.automations.alerts,
 		);
 	}
