@@ -38,6 +38,9 @@ export const API_ROUTES = {
 		market: (marketId: string) =>
 			route(`/polymarket/markets/${encodeURIComponent(marketId)}`),
 		markets: route("/polymarket/markets"),
+		orderBook: (tokenId: string) =>
+			route(`/polymarket/order-books/${encodeURIComponent(tokenId)}`),
+		venueChain: route("/polymarket/venue-chain"),
 	},
 	users: {
 		waitlist: route("/users/waitlist"),

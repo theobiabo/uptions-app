@@ -15,7 +15,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "husky": "^9.1.7"
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "husky": "^9.1.7",
+    "viem": "2.x",
+    "wagmi": "^3.7.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",

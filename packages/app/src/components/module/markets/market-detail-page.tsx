@@ -3,18 +3,15 @@ import {
 	ArrowLeft,
 	Bookmark,
 	Bot,
-	CheckCircle2,
-	ChevronDown,
 	ChevronRight,
 	Code2,
-	LineChart,
 	Link2,
-	SlidersHorizontal,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppKeyword, MarketDetailMetric } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
+import { MarketOrderBookPanel } from "@/components/module/markets/order-book-panel.tsx";
 import { MarketPageSkeleton } from "@/components/skeleton/market-page-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -22,12 +19,7 @@ import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import type { PolymarketMarket } from "@/packages/types/market.types.ts";
-import {
-	formatMarketPrice,
-	formatMarketWindow,
-	formatOutcomePercent,
-} from "@/util/formatters.ts";
-import { getLeadingOutcome, getNoPrice } from "@/util/market-calculations.ts";
+import { formatMarketPrice, formatMarketWindow } from "@/util/formatters.ts";
 import { buildMarketChartPoints, getFiniteNumber } from "@/util/numbers.ts";
 import { parseStringArray } from "@/util/strings.ts";
 
@@ -35,12 +27,9 @@ type MarketDetailPageProps = {
 	marketId: string;
 };
 
-const marketTimeframes = ["5 Min", "15 Min", "1 Hour", "1 Day"] as const;
-
 export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 	const { error, isLoading, market } = usePolymarketMarket(marketId);
 	const normalizedMarket = market ? normalizeMarket(market) : null;
-	const outcomes = parseStringArray(market?.outcomes);
 
 	if (isLoading) {
 		return (
@@ -76,20 +65,18 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 		);
 	}
 
-	const outcomeOne = outcomes[0] ?? AppKeyword.Yes;
-	const outcomeTwo = outcomes[1] ?? AppKeyword.No;
+	const orderBookOutcomes = createOrderBookOutcomes(market);
 	const statusLabel =
 		market.active && !market.closed ? AppKeyword.Live : AppKeyword.Inactive;
 	const platformUrl = normalizedMarket.platformUrl;
-	const leadingOutcome = getLeadingOutcome(market, outcomeOne, outcomeTwo);
-	const noPrice = getNoPrice(market);
 
 	return (
 		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-      <div className=" mx-auto grid w-full
+			<div
+				className=" mx-auto grid w-full
         max-w-[1500px]
-		 gap-5 text-app-fg">
-
+		 gap-5 text-app-fg"
+			>
 				<Link
 					className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-app-muted-fg no-underline hover:text-app-fg"
 					to="/markets"
@@ -98,9 +85,11 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 					{AppKeyword.Markets}
 				</Link>
 
-        <section className="grid gap-5
+				<section
+					className="grid gap-5
 
-				">
+				"
+				>
 					<div className="grid gap-5">
 						<Panel className="p-5">
 							<div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
@@ -191,6 +180,7 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 									>
 										<Link
 											params={{ marketId: normalizedMarket.id }}
+											search={{ automationId: undefined }}
 											to="/$marketId/builder"
 										>
 											<Bot className="size-4" />
@@ -203,7 +193,12 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 							<ChartTimeline />
 						</Panel>
 
-						<OrderBook volume={normalizedMarket.volume} />
+						{orderBookOutcomes.length > 0 ? (
+							<MarketOrderBookPanel
+								outcomes={orderBookOutcomes}
+								volume={normalizedMarket.volume}
+							/>
+						) : null}
 
 						<Panel className="p-5">
 							<div className="flex gap-8 border-b border-app-border text-lg font-bold">
@@ -249,6 +244,16 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 			</div>
 		</DashboardLayout>
 	);
+}
+
+function createOrderBookOutcomes(market: PolymarketMarket) {
+	const tokenIds = parseStringArray(market.clobTokenIds);
+	const outcomes = parseStringArray(market.outcomes);
+
+	return tokenIds.map((tokenId, index) => ({
+		label: outcomes[index] ?? `Outcome ${index + 1}`,
+		tokenId,
+	}));
 }
 
 function Panel({
@@ -443,260 +448,5 @@ function OutcomeDot({ tone }: { tone: "down" | "up" }) {
 		>
 			{tone === "up" ? "UP" : "DN"}
 		</span>
-	);
-}
-
-function OrderBook({ volume }: { volume: string }) {
-	return (
-		<Panel className="p-5">
-			<div className="flex items-center justify-between gap-4">
-				<div className="flex items-center gap-3">
-					<Typography className="text-app-fg" variant="h3">
-						{AppKeyword.OrderBook}
-					</Typography>
-					<span className="grid size-5 place-items-center bg-app-muted text-xs font-bold text-app-muted-fg">
-						i
-					</span>
-				</div>
-				<div className="flex items-center gap-4 text-lg font-semibold text-app-muted-fg">
-					<span>
-						{AppKeyword.Volume}: {volume}
-					</span>
-					<ChevronDown className="size-5 text-app-fg" />
-				</div>
-			</div>
-		</Panel>
-	);
-}
-
-function TopHoldersPnl() {
-	const columns = ["24H", "7D", "30D", "ALL"] as const;
-
-	return (
-		<Panel className="overflow-hidden">
-			<div className="flex items-center justify-between gap-4 px-5 py-4">
-				<Typography className="text-app-fg" variant="h3">
-					{AppKeyword.TopHoldersPnl}
-				</Typography>
-				<div className="flex items-center gap-2 text-sm font-bold text-app-muted-fg">
-					<span>10</span>
-					<span className="bg-app-muted px-2 py-1 text-app-fg">20</span>
-					<span>50</span>
-				</div>
-			</div>
-			<div className="border-y border-app-border bg-app-muted px-5 py-3">
-				<div className="grid grid-cols-[70px_repeat(4,1fr)] gap-2 text-center text-sm font-bold text-app-muted-fg">
-					<span />
-					{columns.map((column) => (
-						<span key={column}>{column}</span>
-					))}
-				</div>
-			</div>
-			<div className="grid gap-4 px-5 py-4 text-sm font-bold">
-				<PnlRow
-					label={AppKeyword.Up}
-					tone="up"
-					values={["-$789.58", "-$1.2K", "-$7.9K", "-$28.0K"]}
-				/>
-				<PnlRow
-					label={AppKeyword.Down}
-					tone="down"
-					values={["-$221.5K", "-$778.9K", "-$1.4M", "-$2.2M"]}
-				/>
-			</div>
-		</Panel>
-	);
-}
-
-function PnlRow({
-	label,
-	tone,
-	values,
-}: {
-	label: string;
-	tone: "down" | "up";
-	values: string[];
-}) {
-	return (
-		<div className="grid grid-cols-[70px_repeat(4,1fr)] gap-2 text-center">
-			<span
-				className={cn(
-					"text-left",
-					tone === "up" ? "text-success" : "text-danger",
-				)}
-			>
-				{label}
-			</span>
-			{values.map((value) => (
-				<span className="text-danger" key={`${label}-${value}`}>
-					{value}
-				</span>
-			))}
-		</div>
-	);
-}
-
-function OutcomePanel({ label, title }: { label: string; title: string }) {
-	return (
-		<Panel className="p-8 text-center">
-			<CheckCircle2 className="mx-auto size-16 text-info" />
-			<p className="mt-6 text-2xl font-bold text-info">
-				{AppKeyword.Outcome}: {label}
-			</p>
-			<p className="mt-5 text-lg leading-7 text-app-muted-fg">{title}</p>
-		</Panel>
-	);
-}
-
-function AutomationPanel({
-	marketId,
-	platformUrl,
-}: {
-	marketId: string;
-	platformUrl: string | null;
-}) {
-	return (
-		<Panel className="p-5">
-			<Typography className="text-app-fg" variant="h3">
-				{AppKeyword.Automation}
-			</Typography>
-			<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-				Use this market as the source for triggers, conditions, and execution
-				rules.
-			</Typography>
-			<div className="mt-5 grid gap-3">
-				<Button
-					asChild
-					className="h-11 bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-				>
-					<Link params={{ marketId }} to="/$marketId/builder">
-						<Bot className="size-4" />
-						{AppKeyword.AutomateMarket}
-					</Link>
-				</Button>
-				{platformUrl && (
-					<Button
-						asChild
-						className="h-11 border border-app-border bg-app-muted px-5 text-sm font-semibold hover:bg-app-muted"
-					>
-						<a href={platformUrl} rel="noreferrer" target="_blank">
-							{AppKeyword.OpenOnPolymarket}
-						</a>
-					</Button>
-				)}
-			</div>
-		</Panel>
-	);
-}
-
-function RelatedCampaigns({
-	market,
-	noPrice,
-	outcomeOne,
-	outcomeTwo,
-}: {
-	market: PolymarketMarket;
-	noPrice: number | undefined;
-	outcomeOne: string;
-	outcomeTwo: string;
-}) {
-	return (
-		<Panel className="p-5">
-			<div className="flex items-center gap-2">
-				<Button
-					className="size-10 border border-app-border bg-app-muted !text-app-muted-fg hover:bg-app-muted"
-					size="icon"
-				>
-					<LineChart className="size-5" />
-				</Button>
-				<Button
-					className="size-10 bg-primary/15 !text-primary hover:bg-primary/20"
-					size="icon"
-				>
-					<span className="text-lg font-black">B</span>
-				</Button>
-				<Button
-					className="size-10 border border-app-border bg-app-muted !text-app-muted-fg hover:bg-app-muted"
-					size="icon"
-				>
-					<SlidersHorizontal className="size-5" />
-				</Button>
-			</div>
-			<div className="mt-4 flex flex-wrap gap-2">
-				{marketTimeframes.map((timeframe) => (
-					<button
-						className={cn(
-							"h-9 px-3 text-sm font-bold",
-							timeframe === "1 Hour"
-								? "bg-app-fg text-app-bg"
-								: "bg-app-muted text-app-muted-fg",
-						)}
-						key={timeframe}
-						type="button"
-					>
-						{timeframe}
-					</button>
-				))}
-			</div>
-			<div className="mt-5 grid gap-3">
-				<RelatedMarket
-					icon="B"
-					label={`${outcomeOne} - June 19, 7PM ET`}
-					percentage={formatOutcomePercent(market.bestBid)}
-					tone="orange"
-				/>
-				<RelatedMarket
-					icon="E"
-					label={`${outcomeTwo} - June 19, 7PM ET`}
-					percentage={formatOutcomePercent(noPrice)}
-					tone="blue"
-				/>
-				<RelatedMarket
-					icon="S"
-					label="Solana Up or Down - June 19, 7PM ET"
-					percentage="100%"
-					tone="black"
-				/>
-			</div>
-		</Panel>
-	);
-}
-
-function RelatedMarket({
-	icon,
-	label,
-	percentage,
-	tone,
-}: {
-	icon: string;
-	label: string;
-	percentage: string;
-	tone: "black" | "blue" | "orange";
-}) {
-	return (
-		<div className="flex items-center justify-between gap-4 border border-app-border bg-app-muted p-3">
-			<div className="flex min-w-0 items-center gap-3">
-				<div
-					className={cn(
-						"grid size-11 shrink-0 place-items-center text-lg font-black text-app-inverse",
-						tone === "orange" && "bg-primary",
-						tone === "blue" && "bg-info",
-						tone === "black" && "bg-app-fg",
-					)}
-				>
-					{icon}
-				</div>
-				<p className="min-w-0 text-sm font-bold leading-6 text-app-fg">
-					{label}
-				</p>
-			</div>
-			<div className="shrink-0 text-right">
-				<p className="text-xl font-bold text-app-fg">
-					<span className="mr-2 inline-block size-2 bg-danger" />
-					{percentage}
-				</p>
-				<p className="text-xs font-semibold text-app-muted-fg">Up</p>
-			</div>
-		</div>
 	);
 }

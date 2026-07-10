@@ -6,6 +6,26 @@ import { getRequestErrorMessage } from "@/util/errors.ts";
 const polymarketMarketsQueryKey = ["polymarket", "markets"] as const;
 const polymarketMarketQueryKey = ["polymarket", "market"] as const;
 
+export function usePolymarketOrderBook(tokenId?: string) {
+	const orderBookQuery = useQuery({
+		enabled: Boolean(tokenId),
+		queryFn: ({ signal }) =>
+			marketService.fetchOrderBook(tokenId ?? "", { signal }),
+		queryKey: ["polymarket", "order-book", tokenId],
+		refetchInterval: 2500,
+	});
+
+	return {
+		error: getRequestErrorMessage(
+			orderBookQuery.error,
+			"Unable to fetch order book",
+		),
+		isLoading: orderBookQuery.isLoading,
+		orderBook: orderBookQuery.data?.data,
+		refetch: orderBookQuery.refetch,
+	};
+}
+
 export function usePolymarketMarket(marketId?: string) {
 	const marketQuery = useQuery({
 		enabled: Boolean(marketId),
