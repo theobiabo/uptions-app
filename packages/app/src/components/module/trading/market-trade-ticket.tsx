@@ -265,6 +265,7 @@ export function MarketTradeTicket({
 				</div>
 			</div>
 
+
 			<div className="flex items-center justify-between border-b border-app-border px-5 pt-4">
 				<div className="flex gap-6 text-lg font-bold">
 					<TabButton
@@ -338,7 +339,8 @@ export function MarketTradeTicket({
 						</span>
 					</div>
 					<input
-						className="h-16 border border-app-border bg-app-muted px-4 text-right text-4xl font-bold text-app-fg outline-none focus:border-primary"
+            className="h-16 border border-app-border bg-app-muted px-4
+						text-right text-xl font-bold"
 						id="trade-amount"
 						inputMode="decimal"
 						onChange={(event) => setAmount(event.target.value)}

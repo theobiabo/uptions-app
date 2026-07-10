@@ -218,7 +218,8 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 							</div>
 							<PriceChart market={market} />
 							<ChartTimeline />
-						</Panel>
+            </Panel>
+
 
 						{orderBookOutcomes.length > 0 ? (
 							<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -231,6 +232,8 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 									selectedTokenId={activeTokenId}
 									volume={normalizedMarket.volume}
 								/>
+
+
 								<MarketTradeTicket
 									marketId={normalizedMarket.id}
 									marketImage={normalizedMarket.image}
