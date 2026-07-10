@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { usePolymarketOrderBook } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
-import type { PolymarketOrderBookLevel } from "@/packages/types/market.types.ts";
+import type {
+	PolymarketOrderBook,
+	PolymarketOrderBookLevel,
+} from "@/packages/types/market.types.ts";
 import { formatDate } from "@/util/formatters.ts";
 
 type MarketOrderBookOutcome = {
@@ -12,25 +14,29 @@ type MarketOrderBookOutcome = {
 };
 
 type MarketOrderBookPanelProps = {
+	error?: string | null;
+	isLoading?: boolean;
+	onSelectedTokenIdChange: (tokenId: string) => void;
+	orderBook?: PolymarketOrderBook | null;
 	outcomes: MarketOrderBookOutcome[];
+	selectedTokenId: string;
 	volume: string;
 };
 
 export function MarketOrderBookPanel({
+	error,
+	isLoading,
+	onSelectedTokenIdChange,
+	orderBook,
 	outcomes,
+	selectedTokenId,
 	volume,
 }: MarketOrderBookPanelProps) {
-	const [selectedTokenId, setSelectedTokenId] = useState(
-		outcomes[0]?.tokenId ?? "",
-	);
 	const selectedOutcome = useMemo(
 		() =>
 			outcomes.find((outcome) => outcome.tokenId === selectedTokenId) ??
 			outcomes[0],
 		[outcomes, selectedTokenId],
-	);
-	const { error, isLoading, orderBook } = usePolymarketOrderBook(
-		selectedOutcome?.tokenId,
 	);
 	const asks = orderBook?.asks.slice(0, 8) ?? [];
 	const bids = orderBook?.bids.slice(0, 8) ?? [];
@@ -57,7 +63,7 @@ export function MarketOrderBookPanel({
 											: "bg-app-muted text-app-fg hover:bg-app-muted",
 									)}
 									key={outcome.tokenId}
-									onClick={() => setSelectedTokenId(outcome.tokenId)}
+									onClick={() => onSelectedTokenIdChange(outcome.tokenId)}
 									type="button"
 								>
 									{outcome.label}

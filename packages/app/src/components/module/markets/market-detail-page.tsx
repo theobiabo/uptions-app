@@ -7,15 +7,19 @@ import {
 	Code2,
 	Link2,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { AppKeyword, MarketDetailMetric } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
 import { MarketOrderBookPanel } from "@/components/module/markets/order-book-panel.tsx";
+import { MarketTradeTicket } from "@/components/module/trading/market-trade-ticket.tsx";
 import { MarketPageSkeleton } from "@/components/skeleton/market-page-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { usePolymarketMarket } from "@/hooks/use-polymarket-markets.ts";
+import {
+	usePolymarketMarket,
+	usePolymarketOrderBook,
+} from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
 import type { PolymarketMarket } from "@/packages/types/market.types.ts";
@@ -28,8 +32,32 @@ type MarketDetailPageProps = {
 };
 
 export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
+	const [selectedTokenId, setSelectedTokenId] = useState("");
 	const { error, isLoading, market } = usePolymarketMarket(marketId);
 	const normalizedMarket = market ? normalizeMarket(market) : null;
+	const orderBookOutcomes = useMemo(
+		() => (market ? createOrderBookOutcomes(market) : []),
+		[market],
+	);
+	const activeTokenId = selectedTokenId || orderBookOutcomes[0]?.tokenId || "";
+	const {
+		error: orderBookError,
+		isLoading: isOrderBookLoading,
+		orderBook,
+		refetch: refetchOrderBook,
+	} = usePolymarketOrderBook(activeTokenId);
+
+	useEffect(() => {
+		if (!orderBookOutcomes.length) {
+			return;
+		}
+
+		if (
+			!orderBookOutcomes.some((outcome) => outcome.tokenId === selectedTokenId)
+		) {
+			setSelectedTokenId(orderBookOutcomes[0]?.tokenId ?? "");
+		}
+	}, [orderBookOutcomes, selectedTokenId]);
 
 	if (isLoading) {
 		return (
@@ -65,7 +93,6 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 		);
 	}
 
-	const orderBookOutcomes = createOrderBookOutcomes(market);
 	const statusLabel =
 		market.active && !market.closed ? AppKeyword.Live : AppKeyword.Inactive;
 	const platformUrl = normalizedMarket.platformUrl;
@@ -194,10 +221,27 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 						</Panel>
 
 						{orderBookOutcomes.length > 0 ? (
-							<MarketOrderBookPanel
-								outcomes={orderBookOutcomes}
-								volume={normalizedMarket.volume}
-							/>
+							<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+								<MarketOrderBookPanel
+									error={orderBookError}
+									isLoading={isOrderBookLoading}
+									onSelectedTokenIdChange={setSelectedTokenId}
+									orderBook={orderBook}
+									outcomes={orderBookOutcomes}
+									selectedTokenId={activeTokenId}
+									volume={normalizedMarket.volume}
+								/>
+								<MarketTradeTicket
+									marketId={normalizedMarket.id}
+									marketImage={normalizedMarket.image}
+									marketTitle={normalizedMarket.title}
+									onSelectedTokenIdChange={setSelectedTokenId}
+									onTradeSubmitted={() => refetchOrderBook()}
+									orderBook={orderBook}
+									outcomes={orderBookOutcomes}
+									selectedTokenId={activeTokenId}
+								/>
+							</div>
 						) : null}
 
 						<Panel className="p-5">

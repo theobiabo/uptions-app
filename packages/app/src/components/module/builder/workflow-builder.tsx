@@ -10,11 +10,13 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { CheckerBackground } from "@/components/misc/checker-background.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { useCurrentUser, useUpdateWallet } from "@/hooks/use-auth.ts";
 import {
 	useAutomations,
 	usePublishAutomation,
@@ -27,6 +29,10 @@ import {
 	workflowBlocks,
 } from "@/packages/builder/builder-data.ts";
 import { normalizeMarket } from "@/packages/markets/market-utils.ts";
+import {
+	supportedChain,
+	tradingProvider,
+} from "@/packages/types/auth.types.ts";
 import type { PublishAutomationRequest } from "@/packages/types/automation.types.ts";
 import {
 	defaultVenueId,
@@ -80,6 +86,9 @@ export function WorkflowBuilder({
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [deleteNodeId, setDeleteNodeId] = useState<string>();
 	const [statusMessage, setStatusMessage] = useState<string | null>(null);
+	const { address, chainId, isConnected } = useAccount();
+	const { user } = useCurrentUser();
+	const updateWallet = useUpdateWallet();
 	const { automations } = useAutomations();
 	const publishAutomation = usePublishAutomation();
 	const updateAutomation = useUpdateAutomation();
@@ -376,7 +385,7 @@ export function WorkflowBuilder({
 		});
 	}, []);
 
-	const handlePublish = useCallback(() => {
+	const handlePublish = useCallback(async () => {
 		setStatusMessage(null);
 
 		if (!selectedMarket) {
@@ -386,6 +395,41 @@ export function WorkflowBuilder({
 
 		if (!automationPayload) {
 			toast.error("Select a market before publishing.");
+			return;
+		}
+
+		if (!user?.preferred_trading_provider) {
+			toast.error("Select a trading provider before publishing automation.");
+			return;
+		}
+
+		if (!isConnected || !address) {
+			toast.error("Connect your wallet before publishing automation.");
+			return;
+		}
+
+		if (chainId !== 137) {
+			toast.error(
+				"Switch your wallet to Polygon before publishing automation.",
+			);
+			return;
+		}
+
+		try {
+			if (
+				!user.primary_wallet_address ||
+				user.primary_wallet_address.toLowerCase() !== address.toLowerCase()
+			) {
+				await updateWallet.mutateAsync({
+					chain: supportedChain.polygon,
+					chain_id: 137,
+					provider: tradingProvider.polymarket,
+					wallet_address: address,
+				});
+			}
+		} catch (error) {
+			const message = getRequestErrorMessage(error, "Unable to save wallet");
+			toast.error(message ?? "Unable to save wallet");
 			return;
 		}
 
@@ -405,7 +449,17 @@ export function WorkflowBuilder({
 			),
 		);
 		setPublishOpen(true);
-	}, [automationPayload, selectedMarket, venue, workflow]);
+	}, [
+		address,
+		automationPayload,
+		chainId,
+		isConnected,
+		selectedMarket,
+		updateWallet,
+		user,
+		venue,
+		workflow,
+	]);
 
 	const handleConfirmPublish = useCallback(async () => {
 		setStatusMessage(null);

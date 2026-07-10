@@ -42,7 +42,17 @@ export const API_ROUTES = {
 			route(`/polymarket/order-books/${encodeURIComponent(tokenId)}`),
 		venueChain: route("/polymarket/venue-chain"),
 	},
+	trades: {
+		item: (tradeId: string) => route(`/trades/${encodeURIComponent(tradeId)}`),
+		list: route("/trades"),
+		preflight: route("/trades/preflight"),
+		submit: (tradeId: string) =>
+			route(`/trades/${encodeURIComponent(tradeId)}/submit`),
+	},
+	tradingProviders: route("/trading-providers"),
 	users: {
+		tradingProvider: route("/users/trading-provider"),
+		wallet: route("/users/wallet"),
 		waitlist: route("/users/waitlist"),
 	},
 	venueConnections: {

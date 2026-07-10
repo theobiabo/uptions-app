@@ -13,6 +13,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet.tsx";
+import { WalletConnectButton } from "@/components/wallet/wallet-connect-button.tsx";
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
 	useApproveMcpApproval,
@@ -267,6 +268,7 @@ export default function DashboardHeader() {
 							</div>
 						) : null}
 					</CustomModal>
+					{user?.preferred_trading_provider ? <WalletConnectButton /> : null}
 					<ThemeToggle />
 					{user ? (
 						<div className="flex items-center gap-2">

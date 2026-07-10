@@ -7,6 +7,11 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	TradingProviderOption,
+	UpdateTradingProviderRequest,
+	UpdateWalletRequest,
+	UserTradingProviderResponse,
+	UserWalletResponse,
 	VenueConnection,
 	VerifyEmailRequest,
 } from "@/packages/types/auth.types.ts";
@@ -65,6 +70,26 @@ export class AuthService {
 		setAuthToken(response.data.access_token);
 
 		return response.data.user;
+	}
+
+	listTradingProviders() {
+		return uptionsRequest.GET<ApiResponse<TradingProviderOption[]>>(
+			API_ROUTES.tradingProviders,
+		);
+	}
+
+	updateTradingProvider(payload: UpdateTradingProviderRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<UserTradingProviderResponse>,
+			UpdateTradingProviderRequest
+		>(API_ROUTES.users.tradingProvider, payload);
+	}
+
+	updateWallet(payload: UpdateWalletRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<UserWalletResponse>,
+			UpdateWalletRequest
+		>(API_ROUTES.users.wallet, payload);
 	}
 
 	connectPolymarket(payload: ConnectPolymarketRequest) {

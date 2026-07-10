@@ -18,6 +18,49 @@ export type VerifyEmailRequest = {
 	token: string;
 };
 
+export const tradingProvider = {
+	polymarket: "POLYMARKET",
+} as const;
+
+export const supportedChain = {
+	polygon: "POLYGON",
+} as const;
+
+export type TradingProvider =
+	(typeof tradingProvider)[keyof typeof tradingProvider];
+
+export type SupportedChain =
+	(typeof supportedChain)[keyof typeof supportedChain];
+
+export type TradingProviderOption = {
+	available: boolean;
+	chain: SupportedChain;
+	chain_id: number;
+	chain_label: string;
+	description: string;
+	image_key: string;
+	label: string;
+	provider: TradingProvider;
+	venue_id: VenueId;
+};
+
+export type UpdateTradingProviderRequest = {
+	provider: TradingProvider;
+};
+
+export type UserTradingProviderResponse = {
+	preferred_trading_provider: TradingProvider;
+};
+
+export type UpdateWalletRequest = {
+	chain: SupportedChain;
+	chain_id: number;
+	provider: TradingProvider;
+	wallet_address: string;
+};
+
+export type UserWalletResponse = UpdateWalletRequest;
+
 export type VenueConnection = {
 	id: string;
 	venue: VenueId;
@@ -35,6 +78,7 @@ export type AuthUser = {
 	wallet_address: string | null;
 	email: string | null;
 	email_verified: boolean;
+	preferred_trading_provider: TradingProvider | null;
 	venue_connections: VenueConnection[];
 };
 

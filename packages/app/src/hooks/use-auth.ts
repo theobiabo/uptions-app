@@ -4,6 +4,8 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	UpdateTradingProviderRequest,
+	UpdateWalletRequest,
 	VerifyEmailRequest,
 } from "@/packages/types/auth.types.ts";
 import { authService } from "@/services/auth.service.ts";
@@ -92,6 +94,44 @@ export function useResetPassword() {
 				message: "Current user fetched successfully",
 				status_code: 200,
 			});
+		},
+	});
+}
+
+export function useTradingProviders() {
+	const query = useQuery({
+		queryFn: () => authService.listTradingProviders(),
+		queryKey: ["trading-providers"],
+	});
+
+	return {
+		error: getRequestErrorMessage(query.error, "Unable to fetch providers"),
+		isLoading: query.isLoading,
+		providers: query.data?.data ?? [],
+		refetch: query.refetch,
+	};
+}
+
+export function useUpdateTradingProvider() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: UpdateTradingProviderRequest) =>
+			authService.updateTradingProvider(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: authQueryKey });
+		},
+	});
+}
+
+export function useUpdateWallet() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: UpdateWalletRequest) =>
+			authService.updateWallet(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: authQueryKey });
 		},
 	});
 }
