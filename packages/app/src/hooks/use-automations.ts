@@ -12,10 +12,12 @@ import type {
 import { getAuthToken } from "@/services/auth-token.service.ts";
 import { automationService } from "@/services/automation.service.ts";
 import { automationAlertStreamService } from "@/services/automation-alert-stream.service.ts";
+import { mcpApprovalService } from "@/services/mcp-approval.service.ts";
 import { getRequestErrorMessage } from "@/util/errors.ts";
 
 export const automationsQueryKey = ["automations"] as const;
 export const automationAlertsQueryKey = ["automation-alerts"] as const;
+export const mcpApprovalsQueryKey = ["mcp-approvals"] as const;
 
 export function useAutomations() {
 	const query = useQuery({
@@ -119,6 +121,24 @@ export function useTestRunAutomation() {
 	});
 }
 
+export function useClearAutomationAlerts() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: () => automationService.clearAlerts(),
+		onSuccess: () => {
+			queryClient.setQueryData<ApiResponse<AutomationAlert[]>>(
+				automationAlertsQueryKey,
+				(current) => ({
+					data: [],
+					message: current?.message ?? "Automation alerts fetched successfully",
+					status_code: current?.status_code ?? 200,
+				}),
+			);
+		},
+	});
+}
+
 export function useMarkAutomationAlertRead() {
 	const queryClient = useQueryClient();
 
@@ -144,6 +164,43 @@ export function useMarkAllAutomationAlertsRead() {
 				markAllAlertsReadInCache,
 			);
 			queryClient.invalidateQueries({ queryKey: automationAlertsQueryKey });
+		},
+	});
+}
+
+export function useApproveMcpApproval() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (approvalId: string) => mcpApprovalService.approve(approvalId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
+			queryClient.invalidateQueries({ queryKey: automationAlertsQueryKey });
+			queryClient.invalidateQueries({ queryKey: mcpApprovalsQueryKey });
+			toast.success("MCP request approved");
+		},
+		onError: (error) => {
+			toast.error(
+				getRequestErrorMessage(error, "Unable to approve MCP request"),
+			);
+		},
+	});
+}
+
+export function useRejectMcpApproval() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (approvalId: string) => mcpApprovalService.reject(approvalId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: automationAlertsQueryKey });
+			queryClient.invalidateQueries({ queryKey: mcpApprovalsQueryKey });
+			toast.success("MCP request rejected");
+		},
+		onError: (error) => {
+			toast.error(
+				getRequestErrorMessage(error, "Unable to reject MCP request"),
+			);
 		},
 	});
 }

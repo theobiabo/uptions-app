@@ -6,6 +6,7 @@ import type {
 import type {
 	PolymarketMarket,
 	PolymarketMarketsQuery,
+	PolymarketOrderBook,
 } from "@/packages/types/market.types.ts";
 import { uptionsRequest } from "./api.service";
 
@@ -13,6 +14,13 @@ export class MarketService {
 	fetchMarket(marketId: string, options?: RequestOptions) {
 		return uptionsRequest.GET<ApiResponse<PolymarketMarket>>(
 			API_ROUTES.polymarket.market(marketId),
+			options,
+		);
+	}
+
+	fetchOrderBook(tokenId: string, options?: RequestOptions) {
+		return uptionsRequest.GET<ApiResponse<PolymarketOrderBook>>(
+			API_ROUTES.polymarket.orderBook(tokenId),
 			options,
 		);
 	}

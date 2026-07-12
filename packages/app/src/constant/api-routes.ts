@@ -25,12 +25,34 @@ export const API_ROUTES = {
 		signup: route("/auth/signup"),
 		verifyEmail: route("/auth/verify-email"),
 	},
+	mcp: {
+		approval: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}`),
+		approvals: route("/mcp/approvals"),
+		approve: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}/approve`),
+		reject: (approvalId: string) =>
+			route(`/mcp/approvals/${encodeURIComponent(approvalId)}/reject`),
+	},
 	polymarket: {
 		market: (marketId: string) =>
 			route(`/polymarket/markets/${encodeURIComponent(marketId)}`),
 		markets: route("/polymarket/markets"),
+		orderBook: (tokenId: string) =>
+			route(`/polymarket/order-books/${encodeURIComponent(tokenId)}`),
+		venueChain: route("/polymarket/venue-chain"),
 	},
+	trades: {
+		item: (tradeId: string) => route(`/trades/${encodeURIComponent(tradeId)}`),
+		list: route("/trades"),
+		preflight: route("/trades/preflight"),
+		submit: (tradeId: string) =>
+			route(`/trades/${encodeURIComponent(tradeId)}/submit`),
+	},
+	tradingProviders: route("/trading-providers"),
 	users: {
+		tradingProvider: route("/users/trading-provider"),
+		wallet: route("/users/wallet"),
 		waitlist: route("/users/waitlist"),
 	},
 	venueConnections: {

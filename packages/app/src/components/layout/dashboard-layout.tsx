@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import DashboardHeader from "@/components/headers/dashboard-header";
+import { TradingProviderModal } from "@/components/wallet/trading-provider-modal.tsx";
 import { useAutomationAlertStream } from "@/hooks/use-automations.ts";
 import { cn } from "@/lib/utils.ts";
 
@@ -25,6 +26,7 @@ export function DashboardLayout({
 			)}
 		>
 			<DashboardHeader />
+			<TradingProviderModal />
 			<div className={cn("w-full flex-1", contentClassName)}>{children}</div>
 		</main>
 	);

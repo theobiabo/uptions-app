@@ -23,6 +23,7 @@ export type PolymarketMarket = {
 	oneMonthPriceChange?: number;
 	outcomes?: string | string[];
 	outcomePrices?: string | string[];
+	clobTokenIds?: string | string[];
 	resolutionSource?: string;
 	slug?: string;
 	startDate?: string;
@@ -37,4 +38,22 @@ export type PolymarketMarketsQuery = {
 	limit?: number;
 	offset?: number;
 	slug?: string;
+};
+
+export type PolymarketOrderBookLevel = {
+	depth_percent: number;
+	price: number;
+	shares: number;
+	usd: number;
+};
+
+export type PolymarketOrderBook = {
+	asks: PolymarketOrderBookLevel[];
+	best_ask: number | null;
+	best_bid: number | null;
+	bids: PolymarketOrderBookLevel[];
+	last_traded: number | null;
+	spread: number | null;
+	token_id: string;
+	updated_at: string;
 };

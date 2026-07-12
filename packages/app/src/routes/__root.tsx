@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { LoaderScreen } from "@/components/skeleton/loader-screen";
 import { ThemeProvider } from "@/components/theme/theme-provider.tsx";
 import { QueryProvider } from "@/providers/query-provider.tsx";
+import { WalletProvider } from "@/providers/wallet-provider.tsx";
 
 import appCss from "../styles.css?url";
 
@@ -146,8 +147,10 @@ function RootDocument({ children }: { children: ReactNode }) {
 			</head>
 			<body>
 				<QueryProvider>
-					<ThemeProvider>{children}</ThemeProvider>
-					<Toaster closeButton position="top-right" richColors />
+					<WalletProvider>
+						<ThemeProvider>{children}</ThemeProvider>
+						<Toaster closeButton position="top-right" richColors />
+					</WalletProvider>
 				</QueryProvider>
 				<TanStackDevtools
 					config={{
