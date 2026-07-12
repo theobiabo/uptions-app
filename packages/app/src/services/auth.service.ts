@@ -7,7 +7,10 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	SettingsUpdateResponse,
 	TradingProviderOption,
+	UpdateEmailRequest,
+	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
 	UpdateWalletRequest,
 	UserTradingProviderResponse,
@@ -76,6 +79,20 @@ export class AuthService {
 		return uptionsRequest.GET<ApiResponse<TradingProviderOption[]>>(
 			API_ROUTES.tradingProviders,
 		);
+	}
+
+	updateEmail(payload: UpdateEmailRequest) {
+		return uptionsRequest.PATCH<ApiResponse<AuthUser>, UpdateEmailRequest>(
+			API_ROUTES.users.settings.email,
+			payload,
+		);
+	}
+
+	updatePassword(payload: UpdatePasswordRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<SettingsUpdateResponse>,
+			UpdatePasswordRequest
+		>(API_ROUTES.users.settings.password, payload);
 	}
 
 	updateTradingProvider(payload: UpdateTradingProviderRequest) {

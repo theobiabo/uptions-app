@@ -14,6 +14,20 @@ export type ResetPasswordRequest = {
 	password: string;
 };
 
+export type UpdateEmailRequest = {
+	current_password?: string;
+	email: string;
+};
+
+export type UpdatePasswordRequest = {
+	current_password: string;
+	new_password: string;
+};
+
+export type SettingsUpdateResponse = {
+	message: string;
+};
+
 export type VerifyEmailRequest = {
 	token: string;
 };
@@ -78,6 +92,7 @@ export type AuthUser = {
 	wallet_address: string | null;
 	email: string | null;
 	email_verified: boolean;
+	password_configured: boolean;
 	preferred_trading_provider: TradingProvider | null;
 	venue_connections: VenueConnection[];
 };

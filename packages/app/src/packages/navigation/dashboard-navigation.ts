@@ -1,11 +1,10 @@
 import {
 	BarChart3,
 	Bell,
-	BookOpen,
-	FileText,
 	Hammer,
 	Home,
 	LineChart,
+	Settings,
 } from "lucide-react";
 import { AppKeyword } from "@/common";
 
@@ -16,6 +15,7 @@ export const dashboardNavigationItems = [
 	// { label: "Templates", href: "/dashboard#templates", icon: FileText },
 	// { label: "Playbooks", href: "/dashboard#playbooks", icon: BookOpen },
 	{ label: "Analytics", href: "/analytics", icon: BarChart3 },
+	{ label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 
 export const dashboardActions = {

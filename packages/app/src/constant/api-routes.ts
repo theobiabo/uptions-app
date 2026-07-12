@@ -51,6 +51,10 @@ export const API_ROUTES = {
 	},
 	tradingProviders: route("/trading-providers"),
 	users: {
+		settings: {
+			email: route("/users/settings/email"),
+			password: route("/users/settings/password"),
+		},
 		tradingProvider: route("/users/trading-provider"),
 		wallet: route("/users/wallet"),
 		waitlist: route("/users/waitlist"),

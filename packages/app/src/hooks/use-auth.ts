@@ -4,6 +4,8 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	UpdateEmailRequest,
+	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
 	UpdateWalletRequest,
 	VerifyEmailRequest,
@@ -110,6 +112,25 @@ export function useTradingProviders() {
 		providers: query.data?.data ?? [],
 		refetch: query.refetch,
 	};
+}
+
+export function useUpdateEmail() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: UpdateEmailRequest) =>
+			authService.updateEmail(payload),
+		onSuccess: (response) => {
+			queryClient.setQueryData(authQueryKey, response);
+		},
+	});
+}
+
+export function useUpdatePassword() {
+	return useMutation({
+		mutationFn: (payload: UpdatePasswordRequest) =>
+			authService.updatePassword(payload),
+	});
 }
 
 export function useUpdateTradingProvider() {
