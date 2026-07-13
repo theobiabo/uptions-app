@@ -86,7 +86,7 @@ export function MarketsPage() {
 					</div>
 
 					<div className="mt-6 grid gap-4 xl:grid-cols-[auto_minmax(260px,420px)_minmax(0,1fr)] xl:items-center">
-						<PlatformSelectorDialog
+						{/*<PlatformSelectorDialog
 							connection={polymarketConnection}
 							isAuthenticated={Boolean(user)}
 							onOpenChange={setIsPlatformDialogOpen}
@@ -109,7 +109,7 @@ export function MarketsPage() {
 								</Button>
 							}
 							venue={venue}
-						/>
+						/>*/}
 
 						<label className="flex h-11 w-full items-center gap-3 border border-app-border bg-app-card px-4 text-app-muted-fg focus-within:border-primary/60">
 							<Search className="size-5" />
