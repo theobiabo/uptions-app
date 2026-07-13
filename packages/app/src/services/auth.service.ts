@@ -8,6 +8,7 @@ import type {
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
 	SettingsUpdateResponse,
+	SignupRequest,
 	TradingProviderOption,
 	UpdateEmailRequest,
 	UpdatePasswordRequest,
@@ -26,10 +27,10 @@ export class AuthService {
 		return uptionsRequest.GET<ApiResponse<AuthUser>>(API_ROUTES.auth.me);
 	}
 
-	async signup(payload: EmailAuthRequest) {
+	async signup(payload: SignupRequest) {
 		const response = await uptionsRequest.POST<
 			ApiResponse<AuthUser>,
-			EmailAuthRequest
+			SignupRequest
 		>(API_ROUTES.auth.signup, payload);
 
 		return response.data;

@@ -4,6 +4,7 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	SignupRequest,
 	UpdateEmailRequest,
 	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
@@ -35,7 +36,7 @@ export function useEmailSignup() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (payload: EmailAuthRequest) => authService.signup(payload),
+		mutationFn: (payload: SignupRequest) => authService.signup(payload),
 		onSuccess: (user) => {
 			queryClient.setQueryData(authQueryKey, {
 				data: user,

@@ -58,7 +58,7 @@ export default function DashboardHeader() {
 	const [selectedAlert, setSelectedAlert] = useState<AutomationAlert | null>(
 		null,
 	);
-	const accountLabel = user?.email ?? "Sign in";
+	const accountLabel = user?.username ?? user?.email ?? "Sign in";
 	const unreadCount = useMemo(
 		() => alerts.filter((alert) => !alert.read_at).length,
 		[alerts],
@@ -281,13 +281,9 @@ export default function DashboardHeader() {
 					{user?.preferred_trading_provider ? <WalletConnectButton /> : null}
 					{user ? (
 						<details className="group relative">
-							<summary className="flex h-9 max-w-[260px] cursor-pointer list-none items-center gap-2  px-3 text-xs font-semibold text-app-muted-fg transition hover:bg-app-muted hover:text-app-fg [&::-webkit-details-marker]:hidden">
-
-                {/*<span className="hidden truncate sm:block">{accountLabel}</span>*/}
-                <Avatar name={accountLabel}
-                size={30}/>
-                <ChevronDown className="size-3.5 shrink-0 transition group-open:rotate-180" />
-
+							<summary className="flex h-9 max-w-[260px] cursor-pointer list-none items-center gap-2 px-3 text-xs font-semibold text-app-muted-fg transition hover:bg-app-muted hover:text-app-fg [&::-webkit-details-marker]:hidden">
+								<Avatar name={accountLabel} size={30} />
+								<ChevronDown className="size-3.5 shrink-0 transition group-open:rotate-180" />
 							</summary>
 							<div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 border border-app-border bg-app-card p-1.5 shadow-xl">
 								<CustomModal
@@ -316,13 +312,13 @@ export default function DashboardHeader() {
 													"#3b82f6",
 													"#f59e0b",
 												]}
-												name={user.email ?? user.id}
+												name={user.username ?? user.email ?? user.id}
 												size="100%"
 												variant="beam"
 											/>
 										</div>
 										<p className="mt-4 text-lg font-semibold text-app-fg">
-											Profile
+											@{user.username}
 										</p>
 										<p className="mt-1 truncate text-sm text-app-muted-fg">
 											{user.email}
@@ -379,16 +375,17 @@ export default function DashboardHeader() {
 												</div>
 											</div>
 											<span className="text-xs text-app-muted-fg">Polygon</span>
-                    </div>
+										</div>
 
-
-                    <div>
-                      <Button
-                        onClick={handleConfirmLogout}
-                        className="w-full hover:bg-red-500/30 hover:text-red-600" variant={"secondary"} >
-                        Logout
-                      </Button>
-                    </div>
+										<div>
+											<Button
+												className="w-full hover:bg-red-500/30 hover:text-red-600"
+												onClick={handleConfirmLogout}
+												variant="secondary"
+											>
+												Logout
+											</Button>
+										</div>
 									</div>
 								</CustomModal>
 								<a

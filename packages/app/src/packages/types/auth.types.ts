@@ -5,6 +5,10 @@ export type EmailAuthRequest = {
 	password: string;
 };
 
+export type SignupRequest = EmailAuthRequest & {
+	username: string;
+};
+
 export type ForgotPasswordRequest = {
 	email: string;
 };
@@ -91,6 +95,7 @@ export type AuthUser = {
 	primary_wallet_address: string | null;
 	wallet_address: string | null;
 	email: string | null;
+	username: string | null;
 	email_verified: boolean;
 	password_configured: boolean;
 	preferred_trading_provider: TradingProvider | null;
