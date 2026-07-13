@@ -5,11 +5,18 @@ import type {
 	CreateTradeIntentResponse,
 	SubmitSignedTradeRequest,
 	SubmitSignedTradeResponse,
+	TradeActionResponse,
 	TradeIntent,
 } from "@/packages/types/trade.types.ts";
 import { uptionsRequest } from "@/services/api.service.ts";
 
 export class TradeService {
+	cancel(tradeId: string) {
+		return uptionsRequest.POST<ApiResponse<TradeActionResponse>>(
+			API_ROUTES.trades.cancel(tradeId),
+		);
+	}
+
 	createIntent(payload: CreateTradeIntentRequest) {
 		return uptionsRequest.POST<
 			ApiResponse<CreateTradeIntentResponse>,
@@ -20,6 +27,12 @@ export class TradeService {
 	list() {
 		return uptionsRequest.GET<ApiResponse<TradeIntent[]>>(
 			API_ROUTES.trades.list,
+		);
+	}
+
+	reconcile(tradeId: string) {
+		return uptionsRequest.POST<ApiResponse<TradeActionResponse>>(
+			API_ROUTES.trades.reconcile(tradeId),
 		);
 	}
 

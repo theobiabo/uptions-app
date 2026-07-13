@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BuilderRouteImport } from './routes/builder'
@@ -21,6 +22,11 @@ import { Route as MarketIdBuilderRouteImport } from './routes/$marketId.builder'
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketsRoute = MarketsRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets/$marketId': typeof MarketsMarketIdRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets/$marketId': typeof MarketsMarketIdRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/orders': typeof OrdersRoute
   '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets_/$marketId': typeof MarketsMarketIdRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/orders'
     | '/settings'
     | '/$marketId/builder'
     | '/markets/$marketId'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/orders'
     | '/settings'
     | '/$marketId/builder'
     | '/markets/$marketId'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/orders'
     | '/settings'
     | '/$marketId/builder'
     | '/markets_/$marketId'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   BuilderRoute: typeof BuilderRoute
   DashboardRoute: typeof DashboardRoute
   MarketsRoute: typeof MarketsRoute
+  OrdersRoute: typeof OrdersRoute
   SettingsRoute: typeof SettingsRoute
   MarketIdBuilderRoute: typeof MarketIdBuilderRoute
   MarketsMarketIdRoute: typeof MarketsMarketIdRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/markets': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuilderRoute: BuilderRoute,
   DashboardRoute: DashboardRoute,
   MarketsRoute: MarketsRoute,
+  OrdersRoute: OrdersRoute,
   SettingsRoute: SettingsRoute,
   MarketIdBuilderRoute: MarketIdBuilderRoute,
   MarketsMarketIdRoute: MarketsMarketIdRoute,

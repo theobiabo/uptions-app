@@ -17,14 +17,37 @@ export function useTrades() {
 	return {
 		error: getRequestErrorMessage(query.error, "Unable to fetch trades"),
 		isLoading: query.isLoading,
+		refetch: query.refetch,
 		trades: query.data?.data ?? [],
 	};
+}
+
+export function useCancelTrade() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (tradeId: string) => tradeService.cancel(tradeId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: tradesQueryKey });
+		},
+	});
 }
 
 export function useCreateTradeIntent() {
 	return useMutation({
 		mutationFn: (payload: CreateTradeIntentRequest) =>
 			tradeService.createIntent(payload),
+	});
+}
+
+export function useReconcileTrade() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (tradeId: string) => tradeService.reconcile(tradeId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: tradesQueryKey });
+		},
 	});
 }
 

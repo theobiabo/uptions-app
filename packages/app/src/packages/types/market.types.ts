@@ -24,6 +24,8 @@ export type PolymarketMarket = {
 	outcomes?: string | string[];
 	outcomePrices?: string | string[];
 	clobTokenIds?: string | string[];
+	negRisk?: boolean;
+	orderPriceMinTickSize?: number | string;
 	resolutionSource?: string;
 	slug?: string;
 	startDate?: string;

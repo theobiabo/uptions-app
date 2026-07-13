@@ -48,9 +48,13 @@ export const API_ROUTES = {
 		venueChain: route("/polymarket/venue-chain"),
 	},
 	trades: {
+		cancel: (tradeId: string) =>
+			route(`/trades/${encodeURIComponent(tradeId)}/cancel`),
 		item: (tradeId: string) => route(`/trades/${encodeURIComponent(tradeId)}`),
 		list: route("/trades"),
 		preflight: route("/trades/preflight"),
+		reconcile: (tradeId: string) =>
+			route(`/trades/${encodeURIComponent(tradeId)}/reconcile`),
 		submit: (tradeId: string) =>
 			route(`/trades/${encodeURIComponent(tradeId)}/submit`),
 	},

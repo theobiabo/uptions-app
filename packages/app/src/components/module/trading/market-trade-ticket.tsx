@@ -1,5 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ChevronDown, Wallet } from "lucide-react";
+import { CheckCircle2, ChevronDown, ShieldAlert, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useWalletClient } from "wagmi";
@@ -12,6 +12,7 @@ import {
 	useCurrentUser,
 	useUpdateWallet,
 } from "@/hooks/use-auth.ts";
+import { usePolymarketReadiness } from "@/hooks/use-polymarket-readiness.ts";
 import {
 	useCreateTradeIntent,
 	useSubmitSignedTrade,
@@ -32,6 +33,9 @@ import {
 import {
 	createOrDerivePolymarketCredentials,
 	createSignedPolymarketOrder,
+	getPolymarketLimitBuyPreview,
+	normalizePolymarketShares,
+	normalizePolymarketTickSize,
 } from "@/services/polymarket-trading.service.ts";
 import { getRequestErrorMessage } from "@/util/errors.ts";
 
@@ -43,12 +47,15 @@ export type TradeTicketOutcome = {
 type MarketTradeTicketProps = {
 	marketId: string;
 	marketImage?: string | null;
+	marketResolved?: boolean;
 	marketTitle: string;
+	negativeRisk: boolean;
 	onSelectedTokenIdChange: (tokenId: string) => void;
 	onTradeSubmitted?: () => void;
 	orderBook?: PolymarketOrderBook | null;
 	outcomes: TradeTicketOutcome[];
 	selectedTokenId: string;
+	tickSize?: number | string;
 };
 
 const quickAmounts = [1, 5, 10, 100];
@@ -56,12 +63,15 @@ const quickAmounts = [1, 5, 10, 100];
 export function MarketTradeTicket({
 	marketId,
 	marketImage,
+	marketResolved = false,
 	marketTitle,
+	negativeRisk,
 	onSelectedTokenIdChange,
 	onTradeSubmitted,
 	orderBook,
 	outcomes,
 	selectedTokenId,
+	tickSize,
 }: MarketTradeTicketProps) {
 	const [amount, setAmount] = useState("");
 	const [authOpen, setAuthOpen] = useState(false);
@@ -85,6 +95,12 @@ export function MarketTradeTicket({
 	);
 	const numericAmount = Number(amount);
 	const numericLimitPrice = Number(limitPrice) / 100;
+	const normalizedTickSize = normalizePolymarketTickSize(tickSize);
+	const limitBuyPreview = getPolymarketLimitBuyPreview({
+		collateralAmount: numericAmount,
+		price: numericLimitPrice,
+		tickSize: normalizedTickSize,
+	});
 	const marketPrice =
 		side === tradeSide.buy ? orderBook?.best_ask : orderBook?.best_bid;
 	const effectivePrice =
@@ -95,9 +111,29 @@ export function MarketTradeTicket({
 		effectivePrice &&
 		effectivePrice > 0
 			? side === tradeSide.buy
-				? numericAmount / effectivePrice
-				: numericAmount
+				? orderType === tradeOrderType.limit
+					? limitBuyPreview.shares
+					: numericAmount / effectivePrice
+				: normalizePolymarketShares(numericAmount)
 			: 0;
+	const requiredCollateral =
+		side === tradeSide.buy
+			? orderType === tradeOrderType.limit
+				? limitBuyPreview.collateral
+				: normalizePolymarketShares(numericAmount)
+			: 0;
+	const requiredShares =
+		side === tradeSide.sell ? normalizePolymarketShares(numericAmount) : 0;
+	const walletReadiness = usePolymarketReadiness({
+		address,
+		chainId,
+		isConnected,
+		negativeRisk,
+		requiredCollateral,
+		requiredShares,
+		side,
+		tokenId: selectedOutcome?.tokenId ?? "",
+	});
 	const submitPending =
 		connectPolymarket.isPending ||
 		createTradeIntent.isPending ||
@@ -110,6 +146,11 @@ export function MarketTradeTicket({
 	};
 
 	const handleTrade = async () => {
+		if (marketResolved) {
+			toast.error("This market is resolved and no longer accepts orders.");
+			return;
+		}
+
 		if (!user) {
 			setAuthOpen(true);
 			return;
@@ -137,6 +178,11 @@ export function MarketTradeTicket({
 
 		if (!selectedOutcome) {
 			toast.error("Select an outcome before trading.");
+			return;
+		}
+
+		if (!walletReadiness.readiness.ready) {
+			toast.error(walletReadiness.readiness.reason);
 			return;
 		}
 
@@ -168,14 +214,19 @@ export function MarketTradeTicket({
 				orderType === tradeOrderType.market
 					? polymarketExecutionType.fok
 					: polymarketExecutionType.gtc;
+			const intentAmount =
+				orderType === tradeOrderType.limit && side === tradeSide.buy
+					? limitBuyPreview.shares
+					: numericAmount;
 			const intent = await createTradeIntent.mutateAsync({
-				amount: numericAmount,
+				amount: intentAmount,
 				execution_type: executionType,
 				market_id: marketId,
 				market_title: marketTitle,
 				order_type: orderType,
 				outcome: selectedOutcome.label,
-				price: orderType === tradeOrderType.limit ? numericLimitPrice : null,
+				price:
+					orderType === tradeOrderType.limit ? limitBuyPreview.price : null,
 				provider: tradingProvider.polymarket,
 				side,
 				token_id: selectedOutcome.tokenId,
@@ -190,7 +241,7 @@ export function MarketTradeTicket({
 				funder: address,
 				passphrase: creds.passphrase,
 				permissions: {
-					automation: true,
+					automation: false,
 					read: true,
 					trade: true,
 				},
@@ -199,8 +250,8 @@ export function MarketTradeTicket({
 			});
 			const signedOrderAmount = getSignedOrderAmount({
 				amount: numericAmount,
+				limitBuyShares: limitBuyPreview.shares,
 				orderType,
-				price: numericLimitPrice,
 				side,
 			});
 			const signedOrder = await createSignedPolymarketOrder(
@@ -213,7 +264,9 @@ export function MarketTradeTicket({
 					negativeRisk: intent.data.token_metadata.negative_risk,
 					orderType,
 					price:
-						orderType === tradeOrderType.limit ? numericLimitPrice : undefined,
+						orderType === tradeOrderType.limit
+							? limitBuyPreview.price
+							: undefined,
 					side,
 					tickSize: intent.data.token_metadata.tick_size,
 					tokenId: selectedOutcome.tokenId,
@@ -264,7 +317,6 @@ export function MarketTradeTicket({
 					</div>
 				</div>
 			</div>
-
 
 			<div className="flex items-center justify-between border-b border-app-border px-5 pt-4">
 				<div className="flex gap-6 text-lg font-bold">
@@ -335,11 +387,11 @@ export function MarketTradeTicket({
 							{side === tradeSide.buy ? "Amount" : "Shares"}
 						</label>
 						<span className="text-xs font-semibold text-app-muted-fg">
-							{side === tradeSide.buy ? "USDC" : "Outcome shares"}
+							{side === tradeSide.buy ? "USDC.e" : "Outcome shares"}
 						</span>
 					</div>
 					<input
-            className="h-16 border border-app-border bg-app-muted px-4
+						className="h-16 border border-app-border bg-app-muted px-4
 						text-right text-xl font-bold"
 						id="trade-amount"
 						inputMode="decimal"
@@ -389,10 +441,54 @@ export function MarketTradeTicket({
 						label="Best bid"
 						value={formatPrice(orderBook?.best_bid)}
 					/>
+					{orderType === tradeOrderType.limit ? (
+						<SummaryRow
+							label="Normalized limit price"
+							value={formatPrice(limitBuyPreview.price)}
+						/>
+					) : null}
 					<SummaryRow
-						label="Estimated shares"
+						label={
+							orderType === tradeOrderType.limit
+								? "Normalized shares"
+								: "Estimated shares"
+						}
 						value={formatNumber(estimatedShares)}
 					/>
+					{orderType === tradeOrderType.limit && side === tradeSide.buy ? (
+						<SummaryRow
+							label="Normalized USDC.e total"
+							value={`$${formatNumber(limitBuyPreview.collateral)}`}
+						/>
+					) : null}
+				</div>
+
+				<div className="grid gap-3 border border-app-border bg-app-muted p-4">
+					<div className="flex items-start gap-3">
+						{walletReadiness.readiness.ready ? (
+							<CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
+						) : (
+							<ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
+						)}
+						<div>
+							<p className="text-sm font-bold text-app-fg">
+								EOA-only private beta
+							</p>
+							<p className="mt-1 text-xs font-medium text-app-muted-fg">
+								{walletReadiness.readiness.reason}
+							</p>
+						</div>
+					</div>
+					<div className="grid grid-cols-2 gap-3 text-xs">
+						<BalanceItem
+							label="Trading balance"
+							value={`${formatNumber(Number(walletReadiness.collateralBalanceFormatted))} USDC.e`}
+						/>
+						<BalanceItem
+							label="Selected outcome"
+							value={`${formatNumber(Number(walletReadiness.outcomeBalanceFormatted))} shares`}
+						/>
+					</div>
 				</div>
 
 				<ConnectButton.Custom>
@@ -436,16 +532,82 @@ export function MarketTradeTicket({
 							);
 						}
 
+						if (
+							side === tradeSide.buy &&
+							requiredCollateral > 0 &&
+							walletReadiness.hasCollateral &&
+							!walletReadiness.hasAllowance
+						) {
+							return (
+								<Button
+									className="h-14 bg-primary text-base font-bold text-primary-foreground hover:bg-primary/90"
+									disabled={walletReadiness.approvalPending}
+									onClick={() =>
+										walletReadiness
+											.approveUsdc()
+											.then(() => toast.success("USDC.e approval submitted"))
+											.catch((error) =>
+												toast.error(
+													getRequestErrorMessage(error, "Approval failed"),
+												),
+											)
+									}
+									type="button"
+								>
+									{walletReadiness.approvalPending
+										? "Confirming approval..."
+										: "Approve USDC.e"}
+								</Button>
+							);
+						}
+
+						if (
+							side === tradeSide.sell &&
+							requiredShares > 0 &&
+							walletReadiness.hasShares &&
+							!walletReadiness.hasOutcomeApproval
+						) {
+							return (
+								<Button
+									className="h-14 bg-primary text-base font-bold text-primary-foreground hover:bg-primary/90"
+									disabled={walletReadiness.approvalPending}
+									onClick={() =>
+										walletReadiness
+											.approveOutcome()
+											.then(() => toast.success("Outcome approval submitted"))
+											.catch((error) =>
+												toast.error(
+													getRequestErrorMessage(error, "Approval failed"),
+												),
+											)
+									}
+									type="button"
+								>
+									{walletReadiness.approvalPending
+										? "Confirming approval..."
+										: "Approve outcome shares"}
+								</Button>
+							);
+						}
+
 						return (
 							<Button
 								className="h-14 bg-primary text-base font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
-								disabled={submitPending}
+								disabled={
+									marketResolved ||
+									submitPending ||
+									!walletReadiness.readiness.ready
+								}
 								onClick={handleTrade}
 								type="button"
 							>
-								{submitPending
-									? "Submitting..."
-									: `${side === tradeSide.buy ? "Buy" : "Sell"} ${selectedOutcome?.label ?? "Shares"}`}
+								{marketResolved
+									? "Market resolved"
+									: submitPending
+										? "Submitting..."
+										: walletReadiness.readiness.ready
+										? `${side === tradeSide.buy ? "Buy" : "Sell"} ${selectedOutcome?.label ?? "Shares"}`
+										: "Wallet not ready"}
 							</Button>
 						);
 					}}
@@ -471,17 +633,17 @@ export function MarketTradeTicket({
 
 function getSignedOrderAmount({
 	amount,
+	limitBuyShares,
 	orderType,
-	price,
 	side,
 }: {
 	amount: number;
+	limitBuyShares: number;
 	orderType: TradeOrderType;
-	price: number;
 	side: TradeSide;
 }) {
 	if (orderType === tradeOrderType.limit && side === tradeSide.buy) {
-		return amount / price;
+		return limitBuyShares;
 	}
 
 	return amount;
@@ -525,6 +687,15 @@ function TabButton({
 	);
 }
 
+function BalanceItem({ label, value }: { label: string; value: string }) {
+	return (
+		<div>
+			<p className="text-app-muted-fg">{label}</p>
+			<p className="mt-1 font-bold text-app-fg">{value}</p>
+		</div>
+	);
+}
+
 function SummaryRow({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex items-center justify-between gap-4">
@@ -561,7 +732,7 @@ function formatPrice(value: number | null | undefined) {
 }
 
 function formatNumber(value: number) {
-	if (!Number.isFinite(value) || value <= 0) {
+	if (!Number.isFinite(value) || value < 0) {
 		return "—";
 	}
 

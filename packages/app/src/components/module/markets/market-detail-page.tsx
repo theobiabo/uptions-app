@@ -34,10 +34,14 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 	);
 	const activeTokenId = selectedTokenId || orderBookOutcomes[0]?.tokenId || "";
 	const {
+		connectionStatus: orderBookConnectionStatus,
 		error: orderBookError,
 		isLoading: isOrderBookLoading,
+		isStale: isOrderBookStale,
+		marketResolution,
 		orderBook,
 		refetch: refetchOrderBook,
+		tickSizeChange,
 	} = usePolymarketOrderBook(activeTokenId);
 
 	useEffect(() => {
@@ -203,17 +207,23 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 						{orderBookOutcomes.length > 0 ? (
 							<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
 								<MarketOrderBookPanel
+									connectionStatus={orderBookConnectionStatus}
 									error={orderBookError}
 									isLoading={isOrderBookLoading}
+									isStale={isOrderBookStale}
+									marketResolution={marketResolution}
 									onSelectedTokenIdChange={setSelectedTokenId}
 									orderBook={orderBook}
 									outcomes={orderBookOutcomes}
 									selectedTokenId={activeTokenId}
+									tickSizeChange={tickSizeChange}
 									volume={normalizedMarket.volume}
 								/>
 
 								<MarketTradeTicket
 									marketId={normalizedMarket.id}
+									marketResolved={Boolean(marketResolution)}
+									negativeRisk={Boolean(market.negRisk)}
 									marketImage={normalizedMarket.image}
 									marketTitle={normalizedMarket.title}
 									onSelectedTokenIdChange={setSelectedTokenId}
@@ -221,6 +231,9 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 									orderBook={orderBook}
 									outcomes={orderBookOutcomes}
 									selectedTokenId={activeTokenId}
+									tickSize={
+										tickSizeChange?.newTickSize ?? market.orderPriceMinTickSize
+									}
 								/>
 							</div>
 						) : null}

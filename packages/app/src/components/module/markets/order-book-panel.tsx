@@ -6,6 +6,11 @@ import type {
 	PolymarketOrderBook,
 	PolymarketOrderBookLevel,
 } from "@/packages/types/market.types.ts";
+import type {
+	PolymarketMarketResolution,
+	PolymarketOrderBookConnectionStatus,
+	PolymarketTickSizeChange,
+} from "@/services/polymarket-order-book-stream.service.ts";
 import { formatDate } from "@/util/formatters.ts";
 
 type MarketOrderBookOutcome = {
@@ -14,22 +19,30 @@ type MarketOrderBookOutcome = {
 };
 
 type MarketOrderBookPanelProps = {
+	connectionStatus: PolymarketOrderBookConnectionStatus;
 	error?: string | null;
 	isLoading?: boolean;
+	isStale: boolean;
+	marketResolution: PolymarketMarketResolution | null;
 	onSelectedTokenIdChange: (tokenId: string) => void;
 	orderBook?: PolymarketOrderBook | null;
 	outcomes: MarketOrderBookOutcome[];
 	selectedTokenId: string;
+	tickSizeChange: PolymarketTickSizeChange | null;
 	volume: string;
 };
 
 export function MarketOrderBookPanel({
+	connectionStatus,
 	error,
 	isLoading,
+	isStale,
+	marketResolution,
 	onSelectedTokenIdChange,
 	orderBook,
 	outcomes,
 	selectedTokenId,
+	tickSizeChange,
 	volume,
 }: MarketOrderBookPanelProps) {
 	const selectedOutcome = useMemo(
@@ -45,9 +58,15 @@ export function MarketOrderBookPanel({
 		<section className="border border-app-border bg-app-card p-5">
 			<div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
-					<Typography className="text-app-fg" variant="h3">
-						Order Book
-					</Typography>
+					<div className="flex flex-wrap items-center gap-2">
+						<Typography className="text-app-fg" variant="h3">
+							Order Book
+						</Typography>
+						<OrderBookConnectionBadge
+							isStale={isStale}
+							status={connectionStatus}
+						/>
+					</div>
 					<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
 						{selectedOutcome?.label ?? "Market outcome"}
 					</Typography>
@@ -72,6 +91,22 @@ export function MarketOrderBookPanel({
 						: null}
 				</div>
 			</div>
+
+			{marketResolution ? (
+				<div className="mt-4 border border-success/40 bg-success/10 px-4 py-3 text-sm font-semibold text-success">
+					Market resolved
+					{marketResolution.winningOutcome
+						? ` · ${marketResolution.winningOutcome} won`
+						: ""}
+				</div>
+			) : null}
+
+			{tickSizeChange ? (
+				<div className="mt-4 border border-app-border bg-app-muted px-4 py-3 text-sm font-semibold text-app-muted-fg">
+					Tick size changed from {formatTickSize(tickSizeChange.oldTickSize)} to{" "}
+					{formatTickSize(tickSizeChange.newTickSize)}
+				</div>
+			) : null}
 
 			<div className="mt-5 grid gap-3 border-y border-app-border py-4 sm:grid-cols-3">
 				<OrderBookMetric
@@ -134,6 +169,37 @@ export function MarketOrderBookPanel({
 				</p>
 			) : null}
 		</section>
+	);
+}
+
+function OrderBookConnectionBadge({
+	isStale,
+	status,
+}: {
+	isStale: boolean;
+	status: PolymarketOrderBookConnectionStatus;
+}) {
+	const label =
+		status === "connected"
+			? "Realtime"
+			: status === "connecting"
+				? "Connecting · REST fallback"
+				: status === "reconnecting"
+					? "Reconnecting · REST fallback"
+					: "REST fallback";
+
+	return (
+		<span
+			className={cn(
+				"inline-flex items-center gap-1.5 border px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em]",
+				isStale
+					? "border-warning/40 bg-warning/10 text-warning"
+					: "border-success/40 bg-success/10 text-success",
+			)}
+		>
+			<span className="size-1.5 bg-current" />
+			{isStale ? `Stale · ${label}` : label}
+		</span>
 	);
 }
 
@@ -225,6 +291,10 @@ function formatPrice(value: number | null | undefined) {
 		return "—";
 	}
 
+	return `${(value * 100).toFixed(value < 0.01 ? 2 : 1)}¢`;
+}
+
+function formatTickSize(value: number) {
 	return `${(value * 100).toFixed(value < 0.01 ? 2 : 1)}¢`;
 }
 

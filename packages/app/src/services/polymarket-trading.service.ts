@@ -18,6 +18,16 @@ import type {
 const polymarketClobHost =
 	import.meta.env.VITE_POLYMARKET_CLOB_HOST ?? "https://clob.polymarket.com";
 
+const roundingConfig: Record<
+	TickSize,
+	{ amount: number; price: number; size: number }
+> = {
+	"0.0001": { amount: 6, price: 4, size: 2 },
+	"0.001": { amount: 5, price: 3, size: 2 },
+	"0.01": { amount: 4, price: 2, size: 2 },
+	"0.1": { amount: 3, price: 1, size: 2 },
+};
+
 export type PolymarketOrderSigningInput = {
 	amount: number;
 	executionType: PolymarketExecutionType;
@@ -101,6 +111,47 @@ export async function createSignedPolymarketOrder(
 	);
 }
 
+export function getPolymarketLimitBuyPreview({
+	collateralAmount,
+	price,
+	tickSize,
+}: {
+	collateralAmount: number;
+	price: number;
+	tickSize: TickSize;
+}) {
+	const config = roundingConfig[tickSize];
+	const normalizedPrice = roundNormal(price, config.price);
+	const shares =
+		normalizedPrice > 0
+			? roundDown(collateralAmount / normalizedPrice, config.size)
+			: 0;
+	const collateral = roundNormal(shares * normalizedPrice, config.amount);
+
+	return { collateral, price: normalizedPrice, shares };
+}
+
+export function normalizePolymarketShares(value: number) {
+	return roundDown(value, 2);
+}
+
+export function normalizePolymarketTickSize(
+	value: number | string | null | undefined,
+): TickSize {
+	const tickSize = String(value ?? "0.01");
+
+	if (
+		tickSize === "0.1" ||
+		tickSize === "0.01" ||
+		tickSize === "0.001" ||
+		tickSize === "0.0001"
+	) {
+		return tickSize;
+	}
+
+	return "0.01";
+}
+
 export function toPolymarketExecutionType(value: PolymarketExecutionType) {
 	switch (value) {
 		case "FAK":
@@ -130,4 +181,14 @@ function toPolymarketMarketExecutionType(
 
 function toPolymarketSide(value: TradeSide) {
 	return value === "BUY" ? Side.BUY : Side.SELL;
+}
+
+function roundDown(value: number, decimals: number) {
+	const factor = 10 ** decimals;
+	return Math.floor(value * factor) / factor;
+}
+
+function roundNormal(value: number, decimals: number) {
+	const factor = 10 ** decimals;
+	return Math.round((value + Number.EPSILON) * factor) / factor;
 }

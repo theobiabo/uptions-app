@@ -27,6 +27,23 @@ export type TradeOrderType =
 export type PolymarketExecutionType =
 	(typeof polymarketExecutionType)[keyof typeof polymarketExecutionType];
 
+export const tradeStatus = {
+	cancelled: "cancelled",
+	cancellationRequested: "cancellation_requested",
+	confirmed: "confirmed",
+	filled: "filled",
+	live: "live",
+	matched: "matched",
+	mined: "mined",
+	reconciliationRequired: "reconciliation_required",
+} as const;
+
+export type TradeStatus =
+	| (typeof tradeStatus)[keyof typeof tradeStatus]
+	| "failed"
+	| "pending"
+	| "submitted";
+
 export type CreateTradeIntentRequest = {
 	amount: number;
 	automation_id?: string;
@@ -66,8 +83,15 @@ export type TradeIntent = {
 	provider: TradingProvider;
 	provider_order_id: string | null;
 	provider_response: Record<string, unknown> | null;
+	signed_maker_amount_base?: string | null;
+	signed_taker_amount_base?: string | null;
+	normalized_amount_base?: string | null;
+	normalized_price_numerator?: string | null;
+	normalized_price_denominator?: string | null;
+	cancellation_requested_at?: string | null;
+	cancelled_at?: string | null;
 	side: TradeSide;
-	status: string;
+	status: TradeStatus | string;
 	submitted_at: string | null;
 	token_id: string;
 	updated_at: string;
@@ -88,5 +112,9 @@ export type SubmitSignedTradeRequest = {
 
 export type SubmitSignedTradeResponse = {
 	provider_response: Record<string, unknown>;
+	trade: TradeIntent;
+};
+
+export type TradeActionResponse = {
 	trade: TradeIntent;
 };

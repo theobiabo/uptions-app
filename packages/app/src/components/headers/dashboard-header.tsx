@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatUnits } from "viem";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useReadContract } from "wagmi";
 import { AuthPanel } from "@/components/auth/auth-panel";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -25,6 +25,12 @@ import {
 } from "@/components/ui/sheet.tsx";
 import { providerAssets } from "@/components/wallet/provider-assets.ts";
 import { WalletConnectButton } from "@/components/wallet/wallet-connect-button.tsx";
+import {
+	erc20TradingAbi,
+	POLYGON_CHAIN_ID,
+	POLYGON_USDC_E_DECIMALS,
+	POLYMARKET_CONTRACTS,
+} from "@/constant/polymarket-contracts.ts";
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
 	useApproveMcpApproval,
@@ -47,9 +53,17 @@ export default function DashboardHeader() {
 	const { user } = useCurrentUser();
 	const logout = useLogout();
 	const { address, isConnected } = useAccount();
-	const { data: walletBalance, isLoading: walletBalanceLoading } = useBalance({
+	const { data: polBalance, isLoading: polBalanceLoading } = useBalance({
 		address,
-		chainId: 137,
+		chainId: POLYGON_CHAIN_ID,
+		query: { enabled: Boolean(address && isConnected) },
+	});
+	const { data: usdcBalance, isLoading: usdcBalanceLoading } = useReadContract({
+		abi: erc20TradingAbi,
+		address: POLYMARKET_CONTRACTS.usdcE,
+		args: address ? [address] : undefined,
+		chainId: POLYGON_CHAIN_ID,
+		functionName: "balanceOf",
 		query: { enabled: Boolean(address && isConnected) },
 	});
 	const {
@@ -401,14 +415,21 @@ export default function DashboardHeader() {
 												<Wallet className="size-5 shrink-0 text-primary" />
 												<div className="min-w-0">
 													<p className="text-xs text-app-muted-fg">
-														Wallet balance
+														Polygon balances
 													</p>
 													<p className="mt-1 truncate text-sm font-semibold text-app-fg">
-														{walletBalanceLoading
-															? "Loading..."
-															: walletBalance
-																? `${Number(formatUnits(walletBalance.value, walletBalance.decimals)).toLocaleString(undefined, { maximumFractionDigits: 5 })} ${walletBalance.symbol}`
+														{usdcBalanceLoading
+															? "Loading USDC.e..."
+															: usdcBalance !== undefined
+																? `${Number(formatUnits(usdcBalance, POLYGON_USDC_E_DECIMALS)).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC.e trading`
 																: "Wallet not connected"}
+													</p>
+													<p className="mt-1 truncate text-xs font-medium text-app-muted-fg">
+														{polBalanceLoading
+															? "Loading POL..."
+															: polBalance
+																? `${Number(formatUnits(polBalance.value, polBalance.decimals)).toLocaleString(undefined, { maximumFractionDigits: 5 })} POL gas`
+																: "POL gas unavailable"}
 													</p>
 												</div>
 											</div>

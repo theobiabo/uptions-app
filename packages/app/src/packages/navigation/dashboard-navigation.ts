@@ -4,6 +4,7 @@ import {
 	Hammer,
 	Home,
 	LineChart,
+	ListOrdered,
 	Settings,
 } from "lucide-react";
 import { AppKeyword } from "@/common";
@@ -11,6 +12,7 @@ import { AppKeyword } from "@/common";
 export const dashboardNavigationItems = [
 	{ label: "Dashboard", href: "/dashboard", icon: Home },
 	{ label: AppKeyword.Markets, href: "/markets", icon: LineChart },
+	{ label: "Orders", href: "/orders", icon: ListOrdered },
 	{ label: "Build", href: "/builder", icon: Hammer },
 	// { label: "Templates", href: "/dashboard#templates", icon: FileText },
 	// { label: "Playbooks", href: "/dashboard#playbooks", icon: BookOpen },
