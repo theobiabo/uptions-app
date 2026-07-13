@@ -1,17 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Bolt, CheckCircle2, ChevronDown, Search } from "lucide-react";
-import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { Bolt, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { AppKeyword } from "@/common";
-import { AuthPanel } from "@/components/auth/auth-panel.tsx";
-import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
 import { ViewToggle } from "@/components/module/app-shell/product-shell.tsx";
 import { MarketCardSkeleton } from "@/components/skeleton/market-card-skeleton.tsx";
 import { Typography } from "@/components/typography/typography.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { Stepper } from "@/components/ui/stepper.tsx";
-import { useConnectPolymarket, useCurrentUser } from "@/hooks/use-auth.ts";
+import { useCurrentUser } from "@/hooks/use-auth.ts";
 import { usePolymarketMarkets } from "@/hooks/use-polymarket-markets.ts";
 import { cn } from "@/lib/utils.ts";
 import {
@@ -19,38 +15,26 @@ import {
 	normalizeMarket,
 } from "@/packages/markets/market-utils.ts";
 import { marketCategories } from "@/packages/markets/markets-data.ts";
-import type {
-	ConnectPolymarketRequest,
-	VenueConnection,
-} from "@/packages/types/auth.types.ts";
+import type { VenueConnection } from "@/packages/types/auth.types.ts";
 import {
 	defaultVenueId,
-	type VenueConfig,
-	type VenueId,
-	venues,
+	getVenueConfig,
 } from "@/packages/venues/venue-data.ts";
-import { emptyToUndefined } from "@/util/strings.ts";
 
 export function MarketsPage() {
 	const [activeCategory, setActiveCategory] =
 		useState<(typeof marketCategories)[number]>("All");
 	const [search, setSearch] = useState("");
-	const [venue, setVenue] = useState<VenueId>(defaultVenueId);
-	const [isPlatformDialogOpen, setIsPlatformDialogOpen] = useState(false);
 	const { user } = useCurrentUser();
 	const { error, isLoading, markets } = usePolymarketMarkets();
-	const selectedVenue = venues.find((item) => item.id === venue) ?? venues[0];
-	const isVenueAvailable = selectedVenue.id === defaultVenueId;
-	const connectedVenues = user?.venue_connections ?? [];
-	const polymarketConnection = connectedVenues.find(
+	const selectedVenue = getVenueConfig(defaultVenueId);
+	const polymarketConnection = (user?.venue_connections ?? []).find(
 		(connection) => connection.venue === defaultVenueId && connection.enabled,
 	);
-
 	const normalizedMarkets = useMemo(
-		() => (isVenueAvailable ? markets.map(normalizeMarket) : []),
-		[isVenueAvailable, markets],
+		() => markets.map(normalizeMarket),
+		[markets],
 	);
-
 	const filteredMarkets = useMemo(() => {
 		const searchValue = search.trim().toLowerCase();
 
@@ -78,44 +62,19 @@ export function MarketsPage() {
 								className="mt-1 max-w-2xl text-app-muted-fg"
 								variant="bodySm"
 							>
-								Browse venue markets, choose a platform, and build automations
-								from one focused workspace.
+								Browse live Polymarket markets and build automations from one
+								focused workspace.
 							</Typography>
 						</div>
 						<ViewToggle />
 					</div>
 
-					<div className="mt-6 grid gap-4 xl:grid-cols-[auto_minmax(260px,420px)_minmax(0,1fr)] xl:items-center">
-						{/*<PlatformSelectorDialog
-							connection={polymarketConnection}
-							isAuthenticated={Boolean(user)}
-							onOpenChange={setIsPlatformDialogOpen}
-							onVenueChange={setVenue}
-							open={isPlatformDialogOpen}
-							selectedVenue={selectedVenue}
-							trigger={
-								<Button
-									className="h-11 justify-between border border-app-border bg-app-card px-4 text-sm font-semibold hover:border-primary/50 hover:bg-app-muted xl:min-w-55"
-									type="button"
-									variant="outline"
-								>
-									<span className="flex min-w-0 flex-col items-start gap-0.5">
-										<span>Select Platform</span>
-										<span className="max-w-37.5 truncate text-xs font-medium text-app-muted-fg">
-											{selectedVenue.label}
-										</span>
-									</span>
-									<ChevronDown className="size-4 text-app-muted-fg" />
-								</Button>
-							}
-							venue={venue}
-						/>*/}
-
+					<div className="mt-6 grid gap-4 xl:grid-cols-[minmax(260px,420px)_minmax(0,1fr)] xl:items-center">
 						<label className="flex h-11 w-full items-center gap-3 border border-app-border bg-app-card px-4 text-app-muted-fg focus-within:border-primary/60">
 							<Search className="size-5" />
+							<span className="sr-only">Search markets</span>
 							<input
-								className="min-w-0 flex-1 bg-transparent text-base text-app-fg outline-none placeholder:text-app-muted-fg disabled:text-app-muted-fg"
-								disabled={!isVenueAvailable}
+								className="min-w-0 flex-1 bg-transparent text-base text-app-fg outline-none placeholder:text-app-muted-fg"
 								onChange={(event) => setSearch(event.target.value)}
 								placeholder={`Search ${selectedVenue.label} markets...`}
 								type="search"
@@ -126,6 +85,7 @@ export function MarketsPage() {
 						<div className="flex flex-wrap gap-2 xl:justify-end">
 							{marketCategories.map((category) => (
 								<button
+									aria-pressed={category === activeCategory}
 									className={cn(
 										"h-9 px-4 text-sm font-medium transition",
 										category === activeCategory
@@ -156,27 +116,14 @@ export function MarketsPage() {
 				</section>
 
 				<section className="grid gap-3 py-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-					{!isVenueAvailable && (
-						<div className="border border-app-border bg-app-card p-5 md:col-span-2 xl:col-span-3 2xl:col-span-4">
-							<Typography className="text-app-fg" variant="h3">
-								{selectedVenue.label} is not available yet
-							</Typography>
-							<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-								{selectedVenue.description}
-							</Typography>
-						</div>
-					)}
-
-					{isVenueAvailable && isLoading && (
+					{isLoading ? (
 						<>
 							<MarketCardSkeleton />
 							<MarketCardSkeleton />
 							<MarketCardSkeleton />
 							<MarketCardSkeleton />
 						</>
-					)}
-
-					{isVenueAvailable && !isLoading && error && (
+					) : error ? (
 						<div className="border border-danger/40 bg-danger/10 p-5 md:col-span-2 xl:col-span-3 2xl:col-span-4">
 							<Typography className="text-danger" variant="h3">
 								Unable to load markets
@@ -185,238 +132,20 @@ export function MarketsPage() {
 								{error}
 							</Typography>
 						</div>
-					)}
-
-					{isVenueAvailable &&
-						!isLoading &&
-						!error &&
-						filteredMarkets.length === 0 && (
-							<NoDataFound
-								className="md:col-span-2 xl:col-span-3 2xl:col-span-4"
-								description="Try a different search or category."
-								title="No markets found"
-							/>
-						)}
-
-					{isVenueAvailable &&
-						!isLoading &&
-						!error &&
+					) : filteredMarkets.length === 0 ? (
+						<NoDataFound
+							className="md:col-span-2 xl:col-span-3 2xl:col-span-4"
+							description="Try a different search or category."
+							title="No markets found"
+						/>
+					) : (
 						filteredMarkets.map((market) => (
 							<MarketCard key={market.id} market={market} />
-						))}
+						))
+					)}
 				</section>
 			</div>
 		</DashboardLayout>
-	);
-}
-
-function PlatformSelectorDialog({
-	connection,
-	isAuthenticated,
-	onOpenChange,
-	onVenueChange,
-	open,
-	selectedVenue,
-	trigger,
-	venue,
-}: {
-	connection?: VenueConnection;
-	isAuthenticated: boolean;
-	onOpenChange: (open: boolean) => void;
-	onVenueChange: (venue: VenueId) => void;
-	open: boolean;
-	selectedVenue: VenueConfig;
-	trigger: ReactNode;
-	venue: VenueId;
-}) {
-	const [step, setStep] = useState(0);
-	const steps = [
-		{
-			description: "Pick a venue",
-			id: "platform",
-			title: "Platform",
-		},
-		{
-			description: "Review and connect",
-			id: "details",
-			title: "Details",
-		},
-	] as const;
-
-	function handleOpenChange(nextOpen: boolean) {
-		onOpenChange(nextOpen);
-
-		if (!nextOpen) {
-			setStep(0);
-		}
-	}
-
-	return (
-		<CustomModal
-			className="max-h-[86vh] overflow-hidden border-app-border bg-app-card p-0 text-app-fg shadow-2xl sm:max-w-3xl"
-			description="Choose where you want to browse markets. Connect credentials only when you need authenticated trading actions."
-			descriptionClassName="text-app-muted-fg"
-			headerClassName="border-b border-app-border p-6 pb-5"
-			onOpenChange={handleOpenChange}
-			open={open}
-			showCloseButton
-			title="Select platform"
-			titleClassName="text-2xl text-app-fg"
-			trigger={trigger}
-		>
-			<div className="grid min-h-0 gap-5 overflow-y-auto p-5">
-				<Stepper currentStep={step} onStepChange={setStep} steps={steps} />
-
-				{step === 0 ? (
-					<div className="grid gap-4">
-						<div className="grid gap-3 sm:grid-cols-2">
-							{venues.map((item) => (
-								<PlatformOption
-									connection={
-										item.id === defaultVenueId ? connection : undefined
-									}
-									isSelected={item.id === venue}
-									key={item.id}
-									onSelect={() => onVenueChange(item.id)}
-									venue={item}
-								/>
-							))}
-						</div>
-
-						<div className="flex flex-col gap-3 border-t border-app-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-							<div>
-								<Typography className="text-app-fg" variant="label">
-									Selected: {selectedVenue.label}
-								</Typography>
-								<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
-									{selectedVenue.description}
-								</Typography>
-							</div>
-							<Button
-								className="h-11 bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-								onClick={() => setStep(1)}
-								type="button"
-							>
-								Continue
-							</Button>
-						</div>
-					</div>
-				) : (
-					<div className="grid gap-4">
-						<PlatformDetails
-							connection={connection}
-							isAuthenticated={isAuthenticated}
-							venue={selectedVenue}
-						/>
-						<div className="border-t border-app-border pt-5">
-							<Button
-								className="h-10 border border-app-border bg-app-muted px-4 text-sm font-semibold hover:bg-app-muted"
-								onClick={() => setStep(0)}
-								type="button"
-								variant="outline"
-							>
-								Back to platforms
-							</Button>
-						</div>
-					</div>
-				)}
-			</div>
-		</CustomModal>
-	);
-}
-
-function PlatformOption({
-	connection,
-	isSelected,
-	onSelect,
-	venue,
-}: {
-	connection?: VenueConnection;
-	isSelected: boolean;
-	onSelect: () => void;
-	venue: VenueConfig;
-}) {
-	return (
-		<button
-			className={cn(
-				"w-full border p-4 text-left transition",
-				isSelected
-					? "border-primary bg-primary/10"
-					: "border-app-border bg-app-muted hover:border-app-border hover:bg-app-muted",
-			)}
-			onClick={onSelect}
-			type="button"
-		>
-			<div className="flex items-center justify-between gap-3">
-				<div>
-					<Typography className="text-app-fg" variant="label">
-						{venue.label}
-					</Typography>
-					<Typography className="mt-1 text-app-muted-fg" variant="bodySm">
-						{venue.description}
-					</Typography>
-				</div>
-				{isSelected && (
-					<CheckCircle2 className="size-5 shrink-0 text-primary" />
-				)}
-			</div>
-			<div className="mt-4">
-				<ConnectionBadge connection={connection} />
-			</div>
-		</button>
-	);
-}
-
-function PlatformDetails({
-	connection,
-	isAuthenticated,
-	venue,
-}: {
-	connection?: VenueConnection;
-	isAuthenticated: boolean;
-	venue: VenueConfig;
-}) {
-	if (venue.id !== defaultVenueId) {
-		return (
-			<div className="border border-app-border bg-app-muted p-5">
-				<Typography className="text-app-fg" variant="h3">
-					{venue.label} support is coming soon
-				</Typography>
-				<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-					{venue.description}
-				</Typography>
-			</div>
-		);
-	}
-
-	return (
-		<div className="grid gap-4">
-			<div className="border border-app-border bg-app-muted p-4">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-					<div>
-						<Typography className="text-app-fg" variant="h3">
-							Polymarket
-						</Typography>
-						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-							Browse public markets immediately. Add API credentials when you
-							want to automate trading actions through Uptions.
-						</Typography>
-					</div>
-					<ConnectionBadge connection={connection} />
-				</div>
-				{connection && (
-					<div className="mt-4 border-t border-app-border pt-4">
-						<Typography className="text-app-muted-fg" variant="caption">
-							Connected account
-						</Typography>
-						<Typography className="mt-1 break-all text-app-fg" variant="bodySm">
-							{connection.account_identifier}
-						</Typography>
-					</div>
-				)}
-			</div>
-			<PolymarketConnectionForm isAuthenticated={isAuthenticated} />
-		</div>
 	);
 }
 
@@ -431,156 +160,8 @@ function ConnectionBadge({ connection }: { connection?: VenueConnection }) {
 			)}
 		>
 			<span className="size-1.5 bg-current" />
-			{connection ? "Connected" : "Disconnected"}
+			{connection ? "Connected" : "Public data"}
 		</span>
-	);
-}
-
-function PolymarketConnectionForm({
-	isAuthenticated,
-}: {
-	isAuthenticated: boolean;
-}) {
-	const connectPolymarket = useConnectPolymarket();
-	const [form, setForm] = useState<ConnectPolymarketRequest>({
-		api_key: "",
-		passphrase: "",
-		secret: "",
-		signature_type: 3,
-	});
-
-	const isSubmitting = connectPolymarket.isPending;
-	const error =
-		connectPolymarket.error instanceof Error
-			? connectPolymarket.error.message
-			: null;
-
-	function updateField(
-		field: keyof ConnectPolymarketRequest,
-		value: string | number | undefined,
-	) {
-		setForm((current) => ({
-			...current,
-			[field]: value,
-		}));
-	}
-
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		connectPolymarket.mutate({
-			...form,
-			account_identifier: emptyToUndefined(form.account_identifier),
-			funder: emptyToUndefined(form.funder),
-		});
-	}
-
-	if (!isAuthenticated) {
-		return <AuthPanel />;
-	}
-
-	return (
-		<form
-			className="grid gap-4 border border-app-border bg-app-muted p-5"
-			onSubmit={handleSubmit}
-		>
-			<div>
-				<Typography className="text-app-fg" variant="h3">
-					Connect Polymarket
-				</Typography>
-				<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-					Paste the API credentials created from Polymarket L1 auth.
-				</Typography>
-			</div>
-			<div className="grid gap-4 sm:grid-cols-2">
-				<ConnectionInput
-					label="Polymarket account address"
-					onChange={(value) => updateField("account_identifier", value)}
-					required
-					value={form.account_identifier ?? ""}
-				/>
-				<ConnectionInput
-					label="API key"
-					onChange={(value) => updateField("api_key", value)}
-					required
-					value={form.api_key}
-				/>
-				<ConnectionInput
-					label="Secret"
-					onChange={(value) => updateField("secret", value)}
-					required
-					type="password"
-					value={form.secret}
-				/>
-				<ConnectionInput
-					label="Passphrase"
-					onChange={(value) => updateField("passphrase", value)}
-					required
-					type="password"
-					value={form.passphrase}
-				/>
-				<ConnectionInput
-					label="Funder address"
-					onChange={(value) => updateField("funder", value)}
-					value={form.funder ?? ""}
-				/>
-				<label className="grid gap-2">
-					<span className="text-xs font-medium text-app-muted-fg">
-						Signature type
-					</span>
-					<select
-						className="h-11 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none focus:border-primary/60"
-						onChange={(event) =>
-							updateField("signature_type", Number(event.target.value))
-						}
-						value={form.signature_type}
-					>
-						<option value={0}>EOA</option>
-						<option value={1}>POLY_PROXY</option>
-						<option value={2}>GNOSIS_SAFE</option>
-						<option value={3}>POLY_1271</option>
-					</select>
-				</label>
-			</div>
-			{error && (
-				<Typography className="text-danger" variant="bodySm">
-					{error}
-				</Typography>
-			)}
-			<Button
-				className="h-11 bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-70 sm:w-fit sm:min-w-45"
-				disabled={isSubmitting}
-				type="submit"
-			>
-				{isSubmitting ? "Saving" : "Save Connection"}
-			</Button>
-		</form>
-	);
-}
-
-function ConnectionInput({
-	label,
-	onChange,
-	required,
-	type = "text",
-	value,
-}: {
-	label: string;
-	onChange: (value: string) => void;
-	required?: boolean;
-	type?: "password" | "text";
-	value: string;
-}) {
-	return (
-		<label className="grid gap-2">
-			<span className="text-xs font-medium text-app-muted-fg">{label}</span>
-			<input
-				className="h-11 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg focus:border-primary/60"
-				onChange={(event) => onChange(event.target.value)}
-				required={required}
-				type={type}
-				value={value}
-			/>
-		</label>
 	);
 }
 
@@ -631,6 +212,7 @@ function MarketCard({ market }: { market: Market }) {
 				<Link
 					className="pointer-events-auto inline-flex items-center gap-3 text-sm font-semibold text-app-fg no-underline hover:text-primary"
 					params={{ marketId: market.id }}
+					search={{ automationId: undefined }}
 					to="/$marketId/builder"
 				>
 					<Bolt className="size-5" />

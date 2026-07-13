@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSignMessage } from "wagmi";
 import type {
 	ConnectPolymarketRequest,
 	EmailAuthRequest,
@@ -128,9 +129,16 @@ export function useUpdateEmail() {
 }
 
 export function useUpdatePassword() {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: (payload: UpdatePasswordRequest) =>
 			authService.updatePassword(payload),
+		onSuccess: () => {
+			clearAuthToken();
+			queryClient.clear();
+			window.location.assign("/");
+		},
 	});
 }
 
@@ -148,10 +156,24 @@ export function useUpdateTradingProvider() {
 
 export function useUpdateWallet() {
 	const queryClient = useQueryClient();
+	const { signMessageAsync } = useSignMessage();
 
 	return useMutation({
-		mutationFn: (payload: UpdateWalletRequest) =>
-			authService.updateWallet(payload),
+		mutationFn: async (payload: UpdateWalletRequest) => {
+			const challenge = await authService.createWalletChallenge({
+				chain_id: payload.chain_id,
+				wallet_address: payload.wallet_address,
+			});
+			const signature = await signMessageAsync({
+				message: challenge.data.message,
+			});
+
+			return authService.updateWallet({
+				...payload,
+				nonce: challenge.data.nonce,
+				signature,
+			});
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: authQueryKey });
 		},
@@ -162,8 +184,10 @@ export function useLogout() {
 	const queryClient = useQueryClient();
 
 	return () => {
-		clearAuthToken();
-		queryClient.removeQueries({ queryKey: authQueryKey });
+		void authService.logout().finally(() => {
+			clearAuthToken();
+			queryClient.clear();
+		});
 	};
 }
 

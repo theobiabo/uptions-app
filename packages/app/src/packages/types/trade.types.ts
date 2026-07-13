@@ -1,3 +1,4 @@
+import type { TickSize } from "@polymarket/clob-client";
 import type {
 	SupportedChain,
 	TradingProvider,
@@ -44,7 +45,7 @@ export type CreateTradeIntentRequest = {
 export type PolymarketTokenMetadata = {
 	fee_rate_bps: number;
 	negative_risk: boolean;
-	tick_size: string;
+	tick_size: TickSize;
 	token_id: string;
 };
 

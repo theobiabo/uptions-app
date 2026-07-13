@@ -14,7 +14,7 @@ export function WalletConnectButton() {
 	const { address, chainId, isConnected } = useAccount();
 	const { user } = useCurrentUser();
 	const updateWallet = useUpdateWallet();
-	const lastSyncKeyRef = useRef<string>();
+	const lastSyncKeyRef = useRef<string | undefined>(undefined);
 
 	useEffect(() => {
 		if (

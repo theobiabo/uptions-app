@@ -66,15 +66,15 @@ export function formatWorkflowBlockValue(
 	const outcome = String(block.params.outcome ?? workflowOutcome.yes);
 
 	if (block.action === workflowActionType.triggerPriceMoves) {
-		return `Watch ${outcome} price movement`;
+		return `Trigger when ${outcome} price changes after baseline`;
 	}
 
 	if (block.action === workflowActionType.triggerVolumeMoves) {
-		return `Watch volume changes over ${block.params.minimum_change_percent}%`;
+		return `Trigger when volume changes by at least ${block.params.minimum_change_percent}%`;
 	}
 
 	if (block.action === workflowActionType.triggerTimeCheck) {
-		return `Check every ${block.params.interval ?? "1h"}`;
+		return `Trigger every ${block.params.interval ?? "1h"} after baseline`;
 	}
 
 	if (block.action === workflowActionType.conditionOutcomePriceAbove) {
@@ -90,11 +90,11 @@ export function formatWorkflowBlockValue(
 	}
 
 	if (block.action === workflowActionType.buy) {
-		return `Buy ${outcome} for $${block.params.amount ?? "10"}`;
+		return `Notify to review BUY ${outcome} with ${block.params.usdc_amount ?? "10"} USDC at ${block.params.limit_price ?? "0.55"}`;
 	}
 
 	if (block.action === workflowActionType.sell) {
-		return `Sell ${outcome} for $${block.params.amount ?? "10"}`;
+		return `Notify to review SELL ${block.params.shares ?? "10"} ${outcome} shares at ${block.params.limit_price ?? "0.55"}`;
 	}
 
 	return String(block.params.message ?? "Send in-app notification");
@@ -114,7 +114,7 @@ export const workflowBlocks: WorkflowBlock[] = [
 		id: "price-moves",
 		kind: workflowBlockKind.trigger,
 		title: "Price Moves",
-		description: "When an outcome price changes",
+		description: "After a baseline, when an outcome price changes",
 		params: {
 			outcome: workflowOutcome.yes,
 		},
@@ -125,7 +125,7 @@ export const workflowBlocks: WorkflowBlock[] = [
 		id: "volume-moves",
 		kind: workflowBlockKind.trigger,
 		title: "Volume Moves",
-		description: "When market volume changes",
+		description: "After a baseline, when market volume changes enough",
 		params: {
 			minimum_change_percent: 10,
 		},
@@ -184,12 +184,13 @@ export const workflowBlocks: WorkflowBlock[] = [
 		action: workflowActionType.buy,
 		id: "buy-outcome",
 		kind: workflowBlockKind.action,
-		title: "Buy Outcome",
-		description: "Buy YES or NO when conditions pass",
+		title: "BUY Approval Notification",
+		description: "Notify you to review a limited BUY using USDC",
 		params: {
-			amount: 10,
-			order_type: workflowOrderType.market,
+			limit_price: 0.55,
+			order_type: workflowOrderType.limit,
 			outcome: workflowOutcome.yes,
+			usdc_amount: 10,
 		},
 		icon: ShoppingCart,
 	}),
@@ -197,12 +198,13 @@ export const workflowBlocks: WorkflowBlock[] = [
 		action: workflowActionType.sell,
 		id: "sell-outcome",
 		kind: workflowBlockKind.action,
-		title: "Sell Outcome",
-		description: "Sell YES or NO when conditions pass",
+		title: "SELL Approval Notification",
+		description: "Notify you to review a limited SELL of shares",
 		params: {
-			amount: 10,
-			order_type: workflowOrderType.market,
+			limit_price: 0.55,
+			order_type: workflowOrderType.limit,
 			outcome: workflowOutcome.no,
+			shares: 10,
 		},
 		icon: ShoppingCart,
 	}),

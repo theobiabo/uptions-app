@@ -502,7 +502,9 @@ export function WorkflowBuilder({
 			setPublishOpen(false);
 			setPublishPayload(null);
 			publishIdempotencyKeyRef.current = null;
-			setStatusMessage("Automation saved and ready to run.");
+			setStatusMessage(
+				"Automation saved for monitoring. Trade steps only send approval notifications.",
+			);
 			toast.success(
 				automationId
 					? "Automation updated successfully"
@@ -558,7 +560,7 @@ export function WorkflowBuilder({
 				automation_id: publishedAutomationId,
 			});
 			setStatusMessage(response.data.message);
-			toast.success("Test run completed successfully");
+			toast.success("Workflow validation completed");
 		} catch (error) {
 			const message = getRequestErrorMessage(
 				error,
@@ -609,7 +611,7 @@ export function WorkflowBuilder({
 				/>
 				<CustomModal
 					className="max-h-[85dvh] overflow-y-auto border-app-border bg-app-card text-app-fg sm:max-w-150"
-					description="Confirm the workflow before activating it for this market."
+					description="Confirm the monitoring path and notification-only trade behavior."
 					onOpenChange={(open) => {
 						if (isSavingAutomation) {
 							return;
@@ -715,6 +717,16 @@ function PublishReview({
 				<ReviewSection items={preview.triggers} title="When" />
 				<ReviewSection items={preview.conditions} title="Only if" />
 				<ReviewSection items={preview.actions} title="Then" />
+			</div>
+
+			<div className="border border-primary/40 bg-primary/10 p-4">
+				<p className="text-sm font-semibold text-app-fg">
+					No automatic trade execution
+				</p>
+				<p className="mt-2 text-sm leading-6 text-app-muted-fg">
+					BUY and SELL steps send approval-only notifications. They do not sign,
+					submit, or execute orders.
+				</p>
 			</div>
 
 			<div className="border border-app-border bg-app-muted p-4">

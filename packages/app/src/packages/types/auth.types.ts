@@ -32,6 +32,10 @@ export type SettingsUpdateResponse = {
 	message: string;
 };
 
+export type LogoutResponse = {
+	revoked_sessions: number;
+};
+
 export type VerifyEmailRequest = {
 	token: string;
 };
@@ -75,6 +79,23 @@ export type UpdateWalletRequest = {
 	chain_id: number;
 	provider: TradingProvider;
 	wallet_address: string;
+};
+
+export type WalletChallengeRequest = {
+	chain_id: number;
+	wallet_address: string;
+};
+
+export type WalletChallengeResponse = WalletChallengeRequest & {
+	expires_at: number;
+	message: string;
+	nonce: string;
+	purpose: "associate_wallet";
+};
+
+export type VerifiedWalletRequest = UpdateWalletRequest & {
+	nonce: string;
+	signature: string;
 };
 
 export type UserWalletResponse = UpdateWalletRequest;

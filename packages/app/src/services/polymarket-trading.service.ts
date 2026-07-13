@@ -6,6 +6,7 @@ import {
 	Side,
 	SignatureType,
 	type SignedOrder,
+	type TickSize,
 } from "@polymarket/clob-client";
 import type { WalletClient } from "viem";
 import type {
@@ -25,7 +26,7 @@ export type PolymarketOrderSigningInput = {
 	orderType: TradeOrderType;
 	price?: number | null;
 	side: TradeSide;
-	tickSize: string;
+	tickSize: TickSize;
 	tokenId: string;
 };
 
@@ -73,7 +74,7 @@ export async function createSignedPolymarketOrder(
 			{
 				amount: input.amount,
 				feeRateBps: input.feeRateBps,
-				orderType: toPolymarketExecutionType(input.executionType),
+				orderType: toPolymarketMarketExecutionType(input.executionType),
 				price: input.price ?? undefined,
 				side,
 				tokenID: input.tokenId,
@@ -111,6 +112,20 @@ export function toPolymarketExecutionType(value: PolymarketExecutionType) {
 		default:
 			return OrderType.FOK;
 	}
+}
+
+function toPolymarketMarketExecutionType(
+	value: PolymarketExecutionType,
+): OrderType.FAK | OrderType.FOK {
+	if (value === "FAK") {
+		return OrderType.FAK;
+	}
+
+	if (value === "FOK") {
+		return OrderType.FOK;
+	}
+
+	throw new Error("Market orders require FAK or FOK execution");
 }
 
 function toPolymarketSide(value: TradeSide) {
