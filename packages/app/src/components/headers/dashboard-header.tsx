@@ -1,7 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
 import Avatar from "boring-avatars";
-import { ChevronDown, LogOut, Settings, UserRound, Wallet } from "lucide-react";
+import {
+	ChevronDown,
+	LogOut,
+	Menu,
+	Settings,
+	UserRound,
+	Wallet,
+} from "lucide-react";
 import { useMemo, useState } from "react";
+import { formatUnits } from "viem";
 import { useAccount, useBalance } from "wagmi";
 import { AuthPanel } from "@/components/auth/auth-panel";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
@@ -44,7 +52,11 @@ export default function DashboardHeader() {
 		chainId: 137,
 		query: { enabled: Boolean(address && isConnected) },
 	});
-	const { alerts, isLoading: alertsLoading } = useAutomationAlerts();
+	const {
+		alerts,
+		error: alertsError,
+		isLoading: alertsLoading,
+	} = useAutomationAlerts();
 	const approveMcpApproval = useApproveMcpApproval();
 	const clearAlerts = useClearAutomationAlerts();
 	const markAlertRead = useMarkAutomationAlertRead();
@@ -52,6 +64,7 @@ export default function DashboardHeader() {
 	const rejectMcpApproval = useRejectMcpApproval();
 	const navigate = useNavigate();
 	const [authOpen, setAuthOpen] = useState(false);
+	const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
 	const [logoutOpen, setLogoutOpen] = useState(false);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -113,7 +126,54 @@ export default function DashboardHeader() {
 					})}
 				</nav>
 
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2 sm:gap-3">
+					<Sheet
+						onOpenChange={setMobileNavigationOpen}
+						open={mobileNavigationOpen}
+					>
+						<SheetTrigger asChild>
+							<Button
+								aria-label="Open dashboard navigation"
+								className="size-9 border-0 bg-transparent text-app-muted-fg hover:bg-app-muted hover:text-app-fg md:hidden"
+								size="icon"
+								type="button"
+								variant="ghost"
+							>
+								<Menu className="size-5" />
+							</Button>
+						</SheetTrigger>
+						<SheetContent
+							className="border-app-border bg-app-card text-app-fg md:hidden"
+							side="left"
+						>
+							<SheetHeader className="border-b border-app-border px-5 py-5">
+								<SheetTitle className="text-app-fg">Dashboard menu</SheetTitle>
+								<SheetDescription className="text-app-muted-fg">
+									Navigate the Uptions dashboard.
+								</SheetDescription>
+							</SheetHeader>
+							<nav
+								aria-label="Mobile dashboard navigation"
+								className="grid gap-1 p-4"
+							>
+								{dashboardNavigationItems.map((item) => {
+									const Icon = item.icon;
+
+									return (
+										<a
+											className="flex min-h-11 items-center gap-3 px-3 text-sm font-semibold text-app-muted-fg no-underline transition hover:bg-app-muted hover:text-app-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+											href={item.href}
+											key={item.label}
+											onClick={() => setMobileNavigationOpen(false)}
+										>
+											<Icon className="size-4" />
+											{item.label}
+										</a>
+									);
+								})}
+							</nav>
+						</SheetContent>
+					</Sheet>
 					<Sheet
 						onOpenChange={handleNotificationsOpenChange}
 						open={notificationsOpen}
@@ -179,6 +239,17 @@ export default function DashboardHeader() {
 										<div className="h-24 animate-pulse bg-app-muted" />
 										<div className="h-24 animate-pulse bg-app-muted" />
 										<div className="h-24 animate-pulse bg-app-muted" />
+									</div>
+								) : alertsError ? (
+									<div className="grid min-h-60 place-items-center px-5 text-center">
+										<div>
+											<p className="text-sm font-semibold text-danger">
+												Unable to load notifications
+											</p>
+											<p className="mt-2 text-sm text-app-muted-fg">
+												{alertsError}
+											</p>
+										</div>
 									</div>
 								) : alerts.length > 0 ? (
 									<div className="mt-5 grid gap-3">
@@ -336,7 +407,7 @@ export default function DashboardHeader() {
 														{walletBalanceLoading
 															? "Loading..."
 															: walletBalance
-																? `${Number(walletBalance.formatted).toLocaleString(undefined, { maximumFractionDigits: 5 })} ${walletBalance.symbol}`
+																? `${Number(formatUnits(walletBalance.value, walletBalance.decimals)).toLocaleString(undefined, { maximumFractionDigits: 5 })} ${walletBalance.symbol}`
 																: "Wallet not connected"}
 													</p>
 												</div>

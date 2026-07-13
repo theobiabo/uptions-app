@@ -19,7 +19,10 @@ export function LaunchDialog({ buttonClassName }: LaunchDialogProps) {
 	const verificationToken = params.get("verify_email");
 	const resetToken = params.get("reset_password");
 	const hasAuthToken = Boolean(verificationToken || resetToken);
-	const showWaitlist = import.meta.env.PROD && !hasAuthToken;
+	const showWaitlist =
+		import.meta.env.PROD &&
+		import.meta.env.VITE_ENABLE_WAITLIST === "true" &&
+		!hasAuthToken;
 	const [open, setOpen] = useState(hasAuthToken);
 
 	return (
@@ -31,7 +34,7 @@ export function LaunchDialog({ buttonClassName }: LaunchDialogProps) {
 			title={showWaitlist ? "Join Uptions waitlist" : "Uptions account"}
 			trigger={
 				<Button className={buttonClassName} type="button">
-					{showWaitlist ? "Waitinglist" : "Get started"}
+					{showWaitlist ? "Join waitlist" : "Get started"}
 				</Button>
 			}
 		>

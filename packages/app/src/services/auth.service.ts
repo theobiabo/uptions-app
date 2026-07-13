@@ -6,6 +6,7 @@ import type {
 	ConnectPolymarketRequest,
 	EmailAuthRequest,
 	ForgotPasswordRequest,
+	LogoutResponse,
 	ResetPasswordRequest,
 	SettingsUpdateResponse,
 	SignupRequest,
@@ -13,11 +14,13 @@ import type {
 	UpdateEmailRequest,
 	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
-	UpdateWalletRequest,
 	UserTradingProviderResponse,
 	UserWalletResponse,
 	VenueConnection,
+	VerifiedWalletRequest,
 	VerifyEmailRequest,
+	WalletChallengeRequest,
+	WalletChallengeResponse,
 } from "@/packages/types/auth.types.ts";
 import { uptionsRequest } from "@/services/api.service.ts";
 import { setAuthToken } from "@/services/auth-token.service.ts";
@@ -45,6 +48,13 @@ export class AuthService {
 		setAuthToken(response.data.access_token);
 
 		return response.data.user;
+	}
+
+	logout() {
+		return uptionsRequest.POST<ApiResponse<LogoutResponse>, undefined>(
+			API_ROUTES.auth.logout,
+			undefined,
+		);
 	}
 
 	async verifyEmail(payload: VerifyEmailRequest) {
@@ -103,10 +113,17 @@ export class AuthService {
 		>(API_ROUTES.users.tradingProvider, payload);
 	}
 
-	updateWallet(payload: UpdateWalletRequest) {
+	createWalletChallenge(payload: WalletChallengeRequest) {
+		return uptionsRequest.POST<
+			ApiResponse<WalletChallengeResponse>,
+			WalletChallengeRequest
+		>(API_ROUTES.users.walletChallenge, payload);
+	}
+
+	updateWallet(payload: VerifiedWalletRequest) {
 		return uptionsRequest.PATCH<
 			ApiResponse<UserWalletResponse>,
-			UpdateWalletRequest
+			VerifiedWalletRequest
 		>(API_ROUTES.users.wallet, payload);
 	}
 

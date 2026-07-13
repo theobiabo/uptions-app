@@ -5,7 +5,7 @@ import type { AutomationAlert } from "@/packages/types/automation.types.ts";
 import { formatDate } from "@/util/formatters.ts";
 
 export function AlertsSection() {
-	const { alerts, isLoading } = useAutomationAlerts();
+	const { alerts, error, isLoading } = useAutomationAlerts();
 
 	return (
 		<aside className="min-w-0">
@@ -15,6 +15,15 @@ export function AlertsSection() {
 			<div className="grid gap-5">
 				{isLoading ? (
 					<AlertLoadingCards />
+				) : error ? (
+					<div className="border border-danger/40 bg-danger/10 p-5">
+						<Typography className="text-danger" variant="h3">
+							Unable to load alerts
+						</Typography>
+						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
+							{error}
+						</Typography>
+					</div>
 				) : alerts.length > 0 ? (
 					alerts.map((alert) => <AlertCard alert={alert} key={alert.id} />)
 				) : (

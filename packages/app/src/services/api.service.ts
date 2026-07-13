@@ -4,7 +4,7 @@ import type {
 	HttpMethod,
 	RequestOptions,
 } from "@/packages/types/api.types.ts";
-import { getAuthToken } from "@/services/auth-token.service.ts";
+import { clearAuthToken, getAuthToken } from "@/services/auth-token.service.ts";
 
 export class ApiService {
 	private readonly baseUrl: string;
@@ -128,6 +128,10 @@ export class ApiService {
 		const data = await this.parseResponse(response);
 
 		if (!response.ok) {
+			if (response.status === 401) {
+				clearAuthToken();
+			}
+
 			throw new ApiError(
 				this.getErrorMessage(data, response.statusText),
 				response.status,

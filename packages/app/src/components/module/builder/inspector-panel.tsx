@@ -12,7 +12,6 @@ import {
 	type WorkflowParamValue,
 	workflowActionType,
 	workflowMessageChannel,
-	workflowOrderType,
 	workflowOutcome,
 } from "@/packages/types/automation.types.ts";
 import type { VenueId } from "@/packages/venues/venue-data.ts";
@@ -193,11 +192,29 @@ function WorkflowParamFields({
 	if (block.action === workflowActionType.triggerTimeCheck) {
 		return (
 			<div className="mt-6">
-				<ConfigInput
-					label="Interval"
-					onChange={(value) => onUpdateParams({ interval: value })}
-					value={String(block.params.interval ?? "")}
-				/>
+				<label className="grid gap-2">
+					<span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
+						Interval
+					</span>
+					<select
+						className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
+						onChange={(event) =>
+							onUpdateParams({ interval: event.target.value })
+						}
+						value={String(block.params.interval ?? "1h")}
+					>
+						<option value="5m">5 minutes</option>
+						<option value="15m">15 minutes</option>
+						<option value="30m">30 minutes</option>
+						<option value="1h">1 hour</option>
+						<option value="4h">4 hours</option>
+						<option value="12h">12 hours</option>
+						<option value="24h">24 hours</option>
+					</select>
+				</label>
+				<p className="mt-2 text-xs leading-5 text-[var(--app-muted-fg)]">
+					The first observation starts the schedule; it does not send an action.
+				</p>
 			</div>
 		);
 	}
@@ -242,32 +259,41 @@ function WorkflowParamFields({
 			<>
 				<OutcomeField block={block} onUpdateParams={onUpdateParams} />
 				<div className="mt-6">
-					<label className="grid gap-2">
-						<span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-muted-fg)]">
-							Order type
-						</span>
-						<select
-							className="h-12 border border-[var(--app-border)] bg-[var(--app-bg)] px-3 text-sm text-[var(--app-fg)] outline-none focus:border-primary"
-							onChange={(event) =>
-								onUpdateParams({ order_type: event.target.value })
-							}
-							value={String(
-								block.params.order_type ?? workflowOrderType.market,
-							)}
-						>
-							<option value={workflowOrderType.market}>Market</option>
-							<option value={workflowOrderType.limit}>Limit</option>
-						</select>
-					</label>
+					<ConfigInput
+						label={
+							block.action === workflowActionType.buy
+								? "BUY amount (USDC)"
+								: "SELL quantity (shares)"
+						}
+						onChange={(value) =>
+							onUpdateParams(
+								block.action === workflowActionType.buy
+									? { usdc_amount: toNumber(value) }
+									: { shares: toNumber(value) },
+							)
+						}
+						type="number"
+						value={String(
+							block.action === workflowActionType.buy
+								? (block.params.usdc_amount ?? "")
+								: (block.params.shares ?? ""),
+						)}
+					/>
 				</div>
 				<div className="mt-6">
 					<ConfigInput
-						label="Amount"
-						onChange={(value) => onUpdateParams({ amount: toNumber(value) })}
+						label="Required limit price"
+						onChange={(value) =>
+							onUpdateParams({ limit_price: toNumber(value) })
+						}
 						type="number"
-						value={String(block.params.amount ?? "")}
+						value={String(block.params.limit_price ?? "")}
 					/>
 				</div>
+				<p className="mt-3 text-xs leading-5 text-[var(--app-muted-fg)]">
+					This action only sends an approval notification. It never places or
+					signs an order.
+				</p>
 			</>
 		);
 	}

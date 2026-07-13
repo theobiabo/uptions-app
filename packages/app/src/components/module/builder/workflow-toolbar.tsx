@@ -106,7 +106,7 @@ export function WorkflowToolbar({
 					variant="ghost"
 				>
 					<Play className="size-4" />
-					{isTesting ? "Testing..." : AppKeyword.TestRun}
+					{isTesting ? "Validating..." : "Validate workflow"}
 				</Button>
 
 				<Button

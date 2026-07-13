@@ -22,7 +22,7 @@ import {
 } from "@/util/workflow.ts";
 
 export function AutomationSection() {
-	const { automations, isLoading } = useAutomations();
+	const { automations, error, isLoading } = useAutomations();
 
 	return (
 		<section className="min-w-0">
@@ -35,6 +35,15 @@ export function AutomationSection() {
 			<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 				{isLoading ? (
 					<AutomationLoadingCards />
+				) : error ? (
+					<div className="border border-danger/40 bg-danger/10 p-5 sm:col-span-2 xl:col-span-3">
+						<Typography className="text-danger" variant="h3">
+							Unable to load automations
+						</Typography>
+						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
+							{error}
+						</Typography>
+					</div>
 				) : automations.length > 0 ? (
 					automations.map((automation) => (
 						<AutomationCard automation={automation} key={automation.id} />

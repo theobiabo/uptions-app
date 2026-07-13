@@ -23,6 +23,8 @@ export const API_ROUTES = {
 	auth: {
 		forgotPassword: route("/auth/forgot-password"),
 		login: route("/auth/login"),
+		logout: route("/auth/logout"),
+		logoutAll: route("/auth/logout-all"),
 		me: route("/auth/me"),
 		resetPassword: route("/auth/reset-password"),
 		signup: route("/auth/signup"),
@@ -60,6 +62,7 @@ export const API_ROUTES = {
 		},
 		tradingProvider: route("/users/trading-provider"),
 		wallet: route("/users/wallet"),
+		walletChallenge: route("/users/wallet/challenge"),
 		waitlist: route("/users/waitlist"),
 	},
 	venueConnections: {

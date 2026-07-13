@@ -100,14 +100,15 @@ export function createWorkflowStateFromPayload(
 			const template = workflowBlocks.find(
 				(block) => block.action === step.action,
 			);
+			const params = normalizeLoadedParams(step.action, step.params);
 			const data = template
 				? {
 						...template,
 						kind: step.kind,
-						params: { ...step.params },
+						params,
 						value: formatWorkflowBlockValue({
 							action: step.action,
-							params: step.params,
+							params,
 						}),
 					}
 				: fallbackWorkflowBlock(step.action, step.kind, step.params);
@@ -323,15 +324,20 @@ function validateWorkflowGraph(state: WorkflowState) {
 		return "Workflow contains duplicate block identifiers.";
 	}
 
-	const hasTrigger = state.nodes.some(
+	const triggerCount = state.nodes.filter(
 		(node) => node.data.kind === workflowBlockKind.trigger,
-	);
+	).length;
+	const hasTrigger = triggerCount > 0;
 	const hasAction = state.nodes.some(
 		(node) => node.data.kind === workflowBlockKind.action,
 	);
 
 	if (!hasTrigger) {
-		return "Add at least one trigger before publishing.";
+		return "Add one trigger before publishing.";
+	}
+
+	if (triggerCount !== 1) {
+		return "Supported automations require exactly one trigger.";
 	}
 
 	if (!hasAction) {
@@ -381,8 +387,33 @@ function validateWorkflowGraph(state: WorkflowState) {
 		return "Workflow cannot contain loops.";
 	}
 
-	if (state.nodes.length > 1 && hasDisconnectedNodes(state)) {
-		return "Connect all workflow blocks into one executable path.";
+	if (state.edges.length + 1 !== state.nodes.length) {
+		return "Supported automations require one linear path without branches.";
+	}
+
+	const incoming = new Map(state.nodes.map((node) => [node.id, 0]));
+	const outgoing = new Map<string, string>();
+
+	for (const edge of state.edges) {
+		incoming.set(edge.target, (incoming.get(edge.target) ?? 0) + 1);
+
+		if ((incoming.get(edge.target) ?? 0) > 1 || outgoing.has(edge.source)) {
+			return "Supported automations require one linear path without branches.";
+		}
+
+		outgoing.set(edge.source, edge.target);
+	}
+
+	const roots = state.nodes.filter((node) => incoming.get(node.id) === 0);
+	const sinks = state.nodes.filter((node) => !outgoing.has(node.id));
+
+	if (
+		roots.length !== 1 ||
+		roots[0]?.data.kind !== workflowBlockKind.trigger ||
+		sinks.length !== 1 ||
+		sinks[0]?.data.kind !== workflowBlockKind.action
+	) {
+		return "Build one linear path from a trigger to an action.";
 	}
 
 	return null;
@@ -404,10 +435,7 @@ function validateActionParams(
 	}
 
 	if (action === workflowActionType.triggerTimeCheck) {
-		return nonEmptyString(
-			params.interval,
-			"Set a check interval before publishing.",
-		);
+		return validScheduleInterval(params.interval);
 	}
 
 	if (
@@ -428,13 +456,32 @@ function validateActionParams(
 		);
 	}
 
-	if (action === workflowActionType.buy || action === workflowActionType.sell) {
+	if (action === workflowActionType.buy) {
 		return (
 			validateOutcome(params.outcome) ??
-			validOrderType(params.order_type) ??
+			limitOrderType(params.order_type) ??
 			positiveNumber(
-				params.amount,
-				"Set a valid order amount before publishing.",
+				params.usdc_amount,
+				"Set the BUY amount in USDC before publishing.",
+			) ??
+			probability(
+				params.limit_price,
+				"Set a required limit price between 0 and 1.",
+			)
+		);
+	}
+
+	if (action === workflowActionType.sell) {
+		return (
+			validateOutcome(params.outcome) ??
+			limitOrderType(params.order_type) ??
+			positiveNumber(
+				params.shares,
+				"Set the SELL quantity in shares before publishing.",
+			) ??
+			probability(
+				params.limit_price,
+				"Set a required limit price between 0 and 1.",
 			)
 		);
 	}
@@ -484,30 +531,19 @@ function hasCycle(state: WorkflowState) {
 	return state.nodes.some((node) => visit(node.id));
 }
 
-function hasDisconnectedNodes(state: WorkflowState) {
-	const connected = new Set<string>();
-
-	for (const edge of state.edges) {
-		connected.add(edge.source);
-		connected.add(edge.target);
-	}
-
-	return state.nodes.some((node) => !connected.has(node.id));
-}
-
 function triggerPreview(
 	action: WorkflowActionType,
 	params: WorkflowStepParams,
 ) {
 	if (action === workflowActionType.triggerPriceMoves) {
-		return "The market price moves";
+		return `${params.outcome} price changes after the initial observation`;
 	}
 
 	if (action === workflowActionType.triggerVolumeMoves) {
-		return `The market volume changes by at least ${params.minimum_change_percent}%`;
+		return `Market volume changes by at least ${params.minimum_change_percent}% after the initial observation`;
 	}
 
-	return `The market is checked every ${params.interval}`;
+	return `The persisted schedule reaches ${params.interval} after the initial observation`;
 }
 
 function conditionPreview(
@@ -527,11 +563,11 @@ function conditionPreview(
 
 function actionPreview(action: WorkflowActionType, params: WorkflowStepParams) {
 	if (action === workflowActionType.buy) {
-		return `Buy ${params.outcome} with configured order settings`;
+		return `Send an approval-only notification to review using ${params.usdc_amount} USDC to BUY ${params.outcome} at a ${params.limit_price} limit price; no order is executed`;
 	}
 
 	if (action === workflowActionType.sell) {
-		return `Sell ${params.outcome} with configured order settings`;
+		return `Send an approval-only notification to review SELLING ${params.shares} ${params.outcome} shares at a ${params.limit_price} limit price; no order is executed`;
 	}
 
 	return `Send message: ${params.message}`;
@@ -553,6 +589,17 @@ function createPlainEnglishSummary(
 		: "";
 
 	return `Uptions will monitor ${marketTitle} on ${venueLabel}. When ${triggerText}, this automation will run.${conditionText}${actionText}`;
+}
+
+function normalizeLoadedParams(
+	action: WorkflowActionType,
+	params: WorkflowStepParams,
+): WorkflowStepParams {
+	if (action === workflowActionType.buy || action === workflowActionType.sell) {
+		return { ...params, order_type: workflowOrderType.limit };
+	}
+
+	return { ...params };
 }
 
 function cleanParams(params: WorkflowStepParams): WorkflowStepParams {
@@ -584,10 +631,16 @@ function validOperator(value: unknown) {
 		: "Select a valid workflow operator.";
 }
 
-function validOrderType(value: unknown) {
-	return value === workflowOrderType.market || value === workflowOrderType.limit
+function limitOrderType(value: unknown) {
+	return value === workflowOrderType.limit
 		? null
-		: "Select a valid order type.";
+		: "Safe private beta trade notifications require a limit order.";
+}
+
+function validScheduleInterval(value: unknown) {
+	return ["5m", "15m", "30m", "1h", "4h", "12h", "24h"].includes(String(value))
+		? null
+		: "Select a supported schedule interval.";
 }
 
 function validMessageChannel(value: unknown) {
