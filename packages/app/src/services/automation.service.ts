@@ -49,11 +49,15 @@ export class AutomationService {
 		);
 	}
 
-	publish(payload: PublishAutomationRequest) {
+	publish(payload: PublishAutomationRequest, idempotencyKey?: string) {
 		return uptionsRequest.POST<
 			ApiResponse<Automation>,
 			PublishAutomationRequest
-		>(API_ROUTES.automations.publish, payload);
+		>(API_ROUTES.automations.publish, payload, {
+			headers: idempotencyKey
+				? { "Idempotency-Key": idempotencyKey }
+				: undefined,
+		});
 	}
 
 	setStatus(automationId: string, payload: UpdateAutomationStatusRequest) {

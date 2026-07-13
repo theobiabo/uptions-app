@@ -98,6 +98,8 @@ export function WorkflowBuilder({
 	const workflowRef = useRef(workflow);
 	const dragStartRef = useRef<WorkflowState | null>(null);
 	const hydratedAutomationIdRef = useRef<string | null>(null);
+	const publishIdempotencyKeyRef = useRef<string | null>(null);
+	const publishInFlightRef = useRef(false);
 	const selectedBlock = useMemo(
 		() => workflow.nodes.find((node) => node.id === selectedNodeId)?.data,
 		[workflow.nodes, selectedNodeId],
@@ -441,6 +443,9 @@ export function WorkflowBuilder({
 		}
 
 		setPublishPayload(automationPayload);
+		publishIdempotencyKeyRef.current = automationId
+			? null
+			: crypto.randomUUID();
 		setPublishPreview(
 			createWorkflowPreview(
 				workflow,
@@ -451,6 +456,7 @@ export function WorkflowBuilder({
 		setPublishOpen(true);
 	}, [
 		address,
+		automationId,
 		automationPayload,
 		chainId,
 		isConnected,
@@ -462,6 +468,10 @@ export function WorkflowBuilder({
 	]);
 
 	const handleConfirmPublish = useCallback(async () => {
+		if (publishInFlightRef.current) {
+			return;
+		}
+
 		setStatusMessage(null);
 
 		if (!publishPayload) {
@@ -469,16 +479,29 @@ export function WorkflowBuilder({
 			return;
 		}
 
+		const idempotencyKey = publishIdempotencyKeyRef.current;
+
+		if (!automationId && !idempotencyKey) {
+			toast.error("Review this automation again before publishing.");
+			return;
+		}
+
+		publishInFlightRef.current = true;
+
 		try {
 			const response = automationId
 				? await updateAutomation.mutateAsync({
 						automationId,
 						payload: publishPayload,
 					})
-				: await publishAutomation.mutateAsync(publishPayload);
+				: await publishAutomation.mutateAsync({
+						idempotencyKey: idempotencyKey as string,
+						payload: publishPayload,
+					});
 			setPublishedAutomationId(response.data.id);
 			setPublishOpen(false);
 			setPublishPayload(null);
+			publishIdempotencyKeyRef.current = null;
 			setStatusMessage("Automation saved and ready to run.");
 			toast.success(
 				automationId
@@ -492,6 +515,8 @@ export function WorkflowBuilder({
 			);
 			setStatusMessage(message);
 			toast.error(message ?? "Unable to publish automation");
+		} finally {
+			publishInFlightRef.current = false;
 		}
 	}, [automationId, publishAutomation, publishPayload, updateAutomation]);
 
@@ -594,6 +619,7 @@ export function WorkflowBuilder({
 
 						if (!open) {
 							setPublishPayload(null);
+							publishIdempotencyKeyRef.current = null;
 						}
 					}}
 					open={publishOpen}

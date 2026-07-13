@@ -3,6 +3,9 @@ const API_VERSION = "/api/v1";
 const route = (path: string) => `${API_VERSION}${path}`;
 
 export const API_ROUTES = {
+	analytics: {
+		overview: route("/analytics/overview"),
+	},
 	automations: {
 		alert: (alertId: string) =>
 			route(`/automation-alerts/${encodeURIComponent(alertId)}/read`),
