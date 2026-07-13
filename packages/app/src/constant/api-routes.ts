@@ -3,6 +3,9 @@ const API_VERSION = "/api/v1";
 const route = (path: string) => `${API_VERSION}${path}`;
 
 export const API_ROUTES = {
+	analytics: {
+		overview: route("/analytics/overview"),
+	},
 	automations: {
 		alert: (alertId: string) =>
 			route(`/automation-alerts/${encodeURIComponent(alertId)}/read`),
@@ -51,6 +54,10 @@ export const API_ROUTES = {
 	},
 	tradingProviders: route("/trading-providers"),
 	users: {
+		settings: {
+			email: route("/users/settings/email"),
+			password: route("/users/settings/password"),
+		},
 		tradingProvider: route("/users/trading-provider"),
 		wallet: route("/users/wallet"),
 		waitlist: route("/users/waitlist"),

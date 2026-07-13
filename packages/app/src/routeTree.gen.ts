@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BuilderRouteImport } from './routes/builder'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MarketsMarketIdRouteImport } from './routes/markets_.$marketId'
 import { Route as MarketIdBuilderRouteImport } from './routes/$marketId.builder'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketsRoute = MarketsRouteImport.update({
   id: '/markets',
   path: '/markets',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets/$marketId': typeof MarketsMarketIdRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets/$marketId': typeof MarketsMarketIdRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/builder': typeof BuilderRoute
   '/dashboard': typeof DashboardRoute
   '/markets': typeof MarketsRoute
+  '/settings': typeof SettingsRoute
   '/$marketId/builder': typeof MarketIdBuilderRoute
   '/markets_/$marketId': typeof MarketsMarketIdRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/settings'
     | '/$marketId/builder'
     | '/markets/$marketId'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/settings'
     | '/$marketId/builder'
     | '/markets/$marketId'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/builder'
     | '/dashboard'
     | '/markets'
+    | '/settings'
     | '/$marketId/builder'
     | '/markets_/$marketId'
   fileRoutesById: FileRoutesById
@@ -117,12 +129,20 @@ export interface RootRouteChildren {
   BuilderRoute: typeof BuilderRoute
   DashboardRoute: typeof DashboardRoute
   MarketsRoute: typeof MarketsRoute
+  SettingsRoute: typeof SettingsRoute
   MarketIdBuilderRoute: typeof MarketIdBuilderRoute
   MarketsMarketIdRoute: typeof MarketsMarketIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/markets': {
       id: '/markets'
       path: '/markets'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuilderRoute: BuilderRoute,
   DashboardRoute: DashboardRoute,
   MarketsRoute: MarketsRoute,
+  SettingsRoute: SettingsRoute,
   MarketIdBuilderRoute: MarketIdBuilderRoute,
   MarketsMarketIdRoute: MarketsMarketIdRoute,
 }

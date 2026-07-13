@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
+    "boring-avatars": "^2.0.4",
     "husky": "^9.1.7",
     "viem": "2.x",
     "wagmi": "^3.7.1"

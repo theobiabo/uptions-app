@@ -53,8 +53,13 @@ export function usePublishAutomation() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (payload: PublishAutomationRequest) =>
-			automationService.publish(payload),
+		mutationFn: ({
+			idempotencyKey,
+			payload,
+		}: {
+			idempotencyKey: string;
+			payload: PublishAutomationRequest;
+		}) => automationService.publish(payload, idempotencyKey),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: automationsQueryKey });
 		},

@@ -7,7 +7,11 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	SettingsUpdateResponse,
+	SignupRequest,
 	TradingProviderOption,
+	UpdateEmailRequest,
+	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
 	UpdateWalletRequest,
 	UserTradingProviderResponse,
@@ -23,10 +27,10 @@ export class AuthService {
 		return uptionsRequest.GET<ApiResponse<AuthUser>>(API_ROUTES.auth.me);
 	}
 
-	async signup(payload: EmailAuthRequest) {
+	async signup(payload: SignupRequest) {
 		const response = await uptionsRequest.POST<
 			ApiResponse<AuthUser>,
-			EmailAuthRequest
+			SignupRequest
 		>(API_ROUTES.auth.signup, payload);
 
 		return response.data;
@@ -76,6 +80,20 @@ export class AuthService {
 		return uptionsRequest.GET<ApiResponse<TradingProviderOption[]>>(
 			API_ROUTES.tradingProviders,
 		);
+	}
+
+	updateEmail(payload: UpdateEmailRequest) {
+		return uptionsRequest.PATCH<ApiResponse<AuthUser>, UpdateEmailRequest>(
+			API_ROUTES.users.settings.email,
+			payload,
+		);
+	}
+
+	updatePassword(payload: UpdatePasswordRequest) {
+		return uptionsRequest.PATCH<
+			ApiResponse<SettingsUpdateResponse>,
+			UpdatePasswordRequest
+		>(API_ROUTES.users.settings.password, payload);
 	}
 
 	updateTradingProvider(payload: UpdateTradingProviderRequest) {

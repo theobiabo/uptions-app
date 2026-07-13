@@ -4,6 +4,9 @@ import type {
 	EmailAuthRequest,
 	ForgotPasswordRequest,
 	ResetPasswordRequest,
+	SignupRequest,
+	UpdateEmailRequest,
+	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
 	UpdateWalletRequest,
 	VerifyEmailRequest,
@@ -33,7 +36,7 @@ export function useEmailSignup() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (payload: EmailAuthRequest) => authService.signup(payload),
+		mutationFn: (payload: SignupRequest) => authService.signup(payload),
 		onSuccess: (user) => {
 			queryClient.setQueryData(authQueryKey, {
 				data: user,
@@ -110,6 +113,25 @@ export function useTradingProviders() {
 		providers: query.data?.data ?? [],
 		refetch: query.refetch,
 	};
+}
+
+export function useUpdateEmail() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: UpdateEmailRequest) =>
+			authService.updateEmail(payload),
+		onSuccess: (response) => {
+			queryClient.setQueryData(authQueryKey, response);
+		},
+	});
+}
+
+export function useUpdatePassword() {
+	return useMutation({
+		mutationFn: (payload: UpdatePasswordRequest) =>
+			authService.updatePassword(payload),
+	});
 }
 
 export function useUpdateTradingProvider() {

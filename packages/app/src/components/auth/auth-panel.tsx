@@ -33,6 +33,7 @@ export function AuthPanel({
 		resetToken ? AuthMode.RESET : AuthMode.LOGIN,
 	);
 	const [email, setEmail] = useState("");
+	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [notice, setNotice] = useState<string | null>(null);
 	const [verificationAttempted, setVerificationAttempted] = useState(false);
@@ -85,13 +86,14 @@ export function AuthPanel({
 
 		if (mode === AuthMode.SIGNUP) {
 			signup.mutate(
-				{ email, password },
+				{ email, password, username },
 				{
 					onSuccess: () => {
 						setNotice(
 							"Check your email to verify your account before signing in.",
 						);
 						setPassword("");
+						setUsername("");
 						setMode(AuthMode.LOGIN);
 					},
 				},
@@ -193,6 +195,26 @@ export function AuthPanel({
 					</button>
 				</div>
 			</div>
+			{mode === AuthMode.SIGNUP && !verificationToken && (
+				<label className="grid gap-2">
+					<span className="text-xs font-medium text-app-muted-fg">
+						Username
+					</span>
+					<input
+						autoComplete="username"
+						className="h-10 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none placeholder:text-app-muted-fg"
+						maxLength={20}
+						minLength={3}
+						onChange={(event) => setUsername(event.target.value.toLowerCase())}
+						pattern="[a-z](?:[a-z0-9]|_(?=[a-z0-9])){2,19}"
+						placeholder="username"
+						required
+						title="Use 3–20 lowercase letters, numbers, or single underscores, starting with a letter"
+						type="text"
+						value={username}
+					/>
+				</label>
+			)}
 			{mode !== AuthMode.RESET && !verificationToken && (
 				<label className="grid gap-2">
 					<span className="text-xs font-medium text-app-muted-fg">Email</span>
