@@ -30,7 +30,7 @@ const statusOrder = [
 	tradeStatus.cancelled,
 ];
 
-export function OrdersPage() {
+export function OrdersContent({ embedded = false }: { embedded?: boolean }) {
 	const { error, isLoading, refetch, trades } = useTrades();
 	const cancelTrade = useCancelTrade();
 	const reconcileTrade = useReconcileTrade();
@@ -67,79 +67,86 @@ export function OrdersPage() {
 	};
 
 	return (
-		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-			<div className="mx-auto grid w-full max-w-[1500px] gap-5">
-				<header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-					<div>
-						<Typography className="text-app-fg" variant="h1">
-							Orders
+		<div
+			className={cn("grid w-full gap-5", !embedded && "mx-auto max-w-[1500px]")}
+		>
+			<header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<Typography className="text-app-fg" variant="h1">
+						Orders
+					</Typography>
+					<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
+						Track Polymarket order lifecycle, cancellations, and reconciliation.
+					</Typography>
+				</div>
+				<Button
+					className="border border-app-border bg-app-card text-app-fg hover:bg-app-muted"
+					disabled={isLoading}
+					onClick={() => refetch()}
+					type="button"
+					variant="ghost"
+				>
+					<RefreshCw className={cn("size-4", isLoading && "animate-spin")} />
+					Refresh
+				</Button>
+			</header>
+
+			{isLoading ? <OrdersLoading /> : null}
+			{!isLoading && error ? (
+				<section className="grid min-h-64 place-items-center border border-danger/40 bg-danger/10 p-6 text-center">
+					<div className="max-w-md">
+						<ShieldAlert className="mx-auto size-8 text-danger" />
+						<Typography className="mt-4 text-app-fg" variant="h3">
+							Orders unavailable
 						</Typography>
 						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-							Track Polymarket order lifecycle, cancellations, and
-							reconciliation.
+							{error}
 						</Typography>
 					</div>
-					<Button
-						className="border border-app-border bg-app-card text-app-fg hover:bg-app-muted"
-						disabled={isLoading}
-						onClick={() => refetch()}
-						type="button"
-						variant="ghost"
-					>
-						<RefreshCw className={cn("size-4", isLoading && "animate-spin")} />
-						Refresh
-					</Button>
-				</header>
-
-				{isLoading ? <OrdersLoading /> : null}
-				{!isLoading && error ? (
-					<section className="grid min-h-64 place-items-center border border-danger/40 bg-danger/10 p-6 text-center">
-						<div className="max-w-md">
-							<ShieldAlert className="mx-auto size-8 text-danger" />
-							<Typography className="mt-4 text-app-fg" variant="h3">
-								Orders unavailable
-							</Typography>
-							<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-								{error}
-							</Typography>
-						</div>
-					</section>
-				) : null}
-				{!isLoading && !error && sortedTrades.length === 0 ? (
-					<section className="grid min-h-64 place-items-center border border-app-border bg-app-card p-6 text-center">
-						<div>
-							<Typography className="text-app-fg" variant="h3">
-								No orders yet
-							</Typography>
-							<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-								Orders placed from market trade tickets will appear here.
-							</Typography>
-							<Button asChild className="mt-5">
-								<Link to="/markets">Browse markets</Link>
-							</Button>
-						</div>
-					</section>
-				) : null}
-				{!isLoading && !error && sortedTrades.length > 0 ? (
-					<div className="grid gap-3">
-						{sortedTrades.map((trade) => (
-							<OrderCard
-								cancelPending={
-									cancelTrade.isPending && cancelTrade.variables === trade.id
-								}
-								key={trade.id}
-								onCancel={handleCancel}
-								onReconcile={handleReconcile}
-								reconcilePending={
-									reconcileTrade.isPending &&
-									reconcileTrade.variables === trade.id
-								}
-								trade={trade}
-							/>
-						))}
+				</section>
+			) : null}
+			{!isLoading && !error && sortedTrades.length === 0 ? (
+				<section className="grid min-h-64 place-items-center border border-app-border bg-app-card p-6 text-center">
+					<div>
+						<Typography className="text-app-fg" variant="h3">
+							No orders yet
+						</Typography>
+						<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
+							Orders placed from market trade tickets will appear here.
+						</Typography>
+						<Button asChild className="mt-5">
+							<Link to="/markets">Browse markets</Link>
+						</Button>
 					</div>
-				) : null}
-			</div>
+				</section>
+			) : null}
+			{!isLoading && !error && sortedTrades.length > 0 ? (
+				<div className="grid gap-3">
+					{sortedTrades.map((trade) => (
+						<OrderCard
+							cancelPending={
+								cancelTrade.isPending && cancelTrade.variables === trade.id
+							}
+							key={trade.id}
+							onCancel={handleCancel}
+							onReconcile={handleReconcile}
+							reconcilePending={
+								reconcileTrade.isPending &&
+								reconcileTrade.variables === trade.id
+							}
+							trade={trade}
+						/>
+					))}
+				</div>
+			) : null}
+		</div>
+	);
+}
+
+export function OrdersPage() {
+	return (
+		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
+			<OrdersContent />
 		</DashboardLayout>
 	);
 }

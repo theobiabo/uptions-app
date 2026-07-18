@@ -9,15 +9,16 @@ type LogoProps = {
 function Logo({ asLink = true }: LogoProps) {
 	const { theme } = useTheme();
 	const logoSrc =
-		theme === "light" ? "/images/logo-dark.svg" : "/images/logo.svg";
+		theme === "light" ? "/assets/logo/icon_orange.png" : "/assets/logo/icon.png";
 	const mark = (
-		<div className="logo flex h-[22px] w-[80px] cursor-pointer items-center">
+    <div className="logo flex h-[22px] w-[80px] cursor-pointer items-center">
+
 			<img
 				alt="Uptions Logo"
-				className="block h-[22px] w-[80px] object-contain"
-				height={22}
+
+				// height={30}
 				src={logoSrc}
-				width={80}
+				width={40}
 			/>
 		</div>
 	);

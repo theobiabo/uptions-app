@@ -23,6 +23,10 @@ export type UpdateEmailRequest = {
 	email: string;
 };
 
+export type UpdateUsernameRequest = {
+	username: string;
+};
+
 export type UpdatePasswordRequest = {
 	current_password: string;
 	new_password: string;

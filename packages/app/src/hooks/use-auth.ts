@@ -9,6 +9,7 @@ import type {
 	UpdateEmailRequest,
 	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
+	UpdateUsernameRequest,
 	UpdateWalletRequest,
 	VerifyEmailRequest,
 } from "@/packages/types/auth.types.ts";
@@ -122,6 +123,18 @@ export function useUpdateEmail() {
 	return useMutation({
 		mutationFn: (payload: UpdateEmailRequest) =>
 			authService.updateEmail(payload),
+		onSuccess: (response) => {
+			queryClient.setQueryData(authQueryKey, response);
+		},
+	});
+}
+
+export function useUpdateUsername() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: UpdateUsernameRequest) =>
+			authService.updateUsername(payload),
 		onSuccess: (response) => {
 			queryClient.setQueryData(authQueryKey, response);
 		},

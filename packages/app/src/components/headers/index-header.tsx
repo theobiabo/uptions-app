@@ -8,7 +8,11 @@ function SiteHeader() {
 			<div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-5 sm:px-8">
 				<div className="flex items-center gap-9">
 					<Logo />
-				</div>
+        </div>
+
+
+
+
 
 				<div className="flex items-center gap-3">
 					<ThemeToggle />

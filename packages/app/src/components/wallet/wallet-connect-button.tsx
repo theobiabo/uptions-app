@@ -10,7 +10,11 @@ import {
 	tradingProvider,
 } from "@/packages/types/auth.types.ts";
 
-export function WalletConnectButton() {
+export function WalletConnectButton({
+	syncWallet = true,
+}: {
+	syncWallet?: boolean;
+}) {
 	const { address, chainId, isConnected } = useAccount();
 	const { user } = useCurrentUser();
 	const updateWallet = useUpdateWallet();
@@ -18,6 +22,7 @@ export function WalletConnectButton() {
 
 	useEffect(() => {
 		if (
+			!syncWallet ||
 			!isConnected ||
 			!address ||
 			chainId !== 137 ||
@@ -43,7 +48,7 @@ export function WalletConnectButton() {
 			provider: tradingProvider.polymarket,
 			wallet_address: address,
 		});
-	}, [address, chainId, isConnected, updateWallet, user]);
+	}, [address, chainId, isConnected, syncWallet, updateWallet, user]);
 
 	return (
 		<ConnectButton.Custom>

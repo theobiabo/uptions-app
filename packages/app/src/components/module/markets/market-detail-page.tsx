@@ -4,6 +4,8 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { AppKeyword, MarketDetailMetric } from "@/common";
 import { DashboardLayout } from "@/components/layout/dashboard-layout.tsx";
 import { NoDataFound } from "@/components/misc/no-data-found.tsx";
+import { MarketCommentsPanel } from "@/components/module/markets/comments/market-comments-panel.tsx";
+import { MarketFavoriteButton } from "@/components/module/markets/favorite/market-favorite-button.tsx";
 import { MarketOrderBookPanel } from "@/components/module/markets/order-book-panel.tsx";
 import { MarketTradeTicket } from "@/components/module/trading/market-trade-ticket.tsx";
 import { MarketPageSkeleton } from "@/components/skeleton/market-page-skeleton.tsx";
@@ -149,6 +151,10 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 										</Typography>
 									</div>
 								</div>
+								<MarketFavoriteButton
+									className="w-full md:w-auto"
+									marketId={normalizedMarket.id}
+								/>
 							</div>
 
 							<div className="mt-8 grid gap-5 sm:grid-cols-3">
@@ -237,6 +243,8 @@ export function MarketDetailPage({ marketId }: MarketDetailPageProps) {
 								/>
 							</div>
 						) : null}
+
+						<MarketCommentsPanel marketId={normalizedMarket.id} />
 
 						<Panel className="p-5">
 							<Typography

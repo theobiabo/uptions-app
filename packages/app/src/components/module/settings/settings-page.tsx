@@ -1,4 +1,12 @@
-import { CheckCircle2, Mail, ShieldCheck, Wallet } from "lucide-react";
+import Avatar from "boring-avatars";
+import {
+	CheckCircle2,
+	CircleUserRound,
+	type LucideIcon,
+	Mail,
+	ShieldCheck,
+	Wallet,
+} from "lucide-react";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
@@ -13,39 +21,245 @@ import {
 	useUpdateEmail,
 	useUpdatePassword,
 	useUpdateTradingProvider,
+	useUpdateUsername,
+	useUpdateWallet,
 } from "@/hooks/use-auth.ts";
 import { cn } from "@/lib/utils.ts";
-import type { TradingProviderOption } from "@/packages/types/auth.types.ts";
+import {
+	type AuthUser,
+	supportedChain,
+	type TradingProviderOption,
+	tradingProvider,
+} from "@/packages/types/auth.types.ts";
 import { getRequestErrorMessage } from "@/util/errors.ts";
+
+const settingsSection = {
+	account: "account",
+	profile: "profile",
+	security: "security",
+	trading: "trading",
+} as const;
+
+type SettingsSectionId = (typeof settingsSection)[keyof typeof settingsSection];
+
+const settingsNavigation: Array<{
+	description: string;
+	icon: LucideIcon;
+	id: SettingsSectionId;
+	label: string;
+}> = [
+	{
+		description: "Identity and account summary",
+		icon: CircleUserRound,
+		id: settingsSection.profile,
+		label: "Profile",
+	},
+	{
+		description: "Email and verification",
+		icon: Mail,
+		id: settingsSection.account,
+		label: "Account",
+	},
+	{
+		description: "Provider and wallet",
+		icon: Wallet,
+		id: settingsSection.trading,
+		label: "Trading",
+	},
+	{
+		description: "Password and access",
+		icon: ShieldCheck,
+		id: settingsSection.security,
+		label: "Security",
+	},
+];
 
 export function SettingsPage() {
 	const { user } = useCurrentUser();
+	const [activeSection, setActiveSection] = useState<SettingsSectionId>(
+		settingsSection.profile,
+	);
+
+	useEffect(() => {
+		const syncSection = () => {
+			setActiveSection(parseSettingsSection(window.location.hash));
+		};
+
+		syncSection();
+		window.addEventListener("hashchange", syncSection);
+		return () => window.removeEventListener("hashchange", syncSection);
+	}, []);
 
 	return (
-		<DashboardLayout contentClassName="px-5 py-8 sm:px-8">
-			<div className="mx-auto grid w-full max-w-5xl gap-6">
-				<div>
+		<DashboardLayout contentClassName="px-5 py-8 sm:px-8 sm:py-10">
+			<div className="mx-auto grid w-full max-w-6xl gap-7">
+				<header>
 					<Typography className="text-app-fg" variant="h1">
 						Settings
 					</Typography>
 					<Typography className="mt-2 text-app-muted-fg" variant="bodySm">
-						Manage your account, trading provider, wallet, and security.
+						Manage your profile, account, trading setup, and security.
 					</Typography>
-				</div>
+				</header>
 
-				<div className="grid gap-6">
-					<EmailSettings
-						email={user?.email ?? ""}
-						verified={Boolean(user?.email_verified)}
-					/>
-					<TradingProviderSettings
-						selectedProvider={user?.preferred_trading_provider ?? null}
-					/>
-					<WalletSettings savedWallet={user?.primary_wallet_address ?? null} />
-					<PasswordSettings enabled={Boolean(user?.password_configured)} />
+				<div className="grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-9">
+					<nav
+						aria-label="Settings sections"
+						className="-mx-5 overflow-x-auto border-y border-app-border px-5 sm:-mx-8 sm:px-8 lg:sticky lg:top-24 lg:mx-0 lg:self-start lg:overflow-visible lg:border-0 lg:px-0"
+					>
+						<div className="flex min-w-max gap-2 py-3 lg:grid lg:min-w-0 lg:gap-1 lg:py-0">
+							{settingsNavigation.map((item) => {
+								const Icon = item.icon;
+								const active = item.id === activeSection;
+
+								return (
+									<a
+										aria-current={active ? "page" : undefined}
+										className={cn(
+											"flex min-h-11 items-center gap-3 border px-4 text-sm font-semibold no-underline transition lg:min-h-16 lg:items-start lg:p-3",
+											active
+												? "border-primary bg-primary/10 text-app-fg"
+												: "border-app-border bg-app-card text-app-muted-fg hover:border-primary/50 hover:text-app-fg lg:border-transparent lg:bg-transparent",
+										)}
+										href={`#${item.id}`}
+										key={item.id}
+										onClick={() => setActiveSection(item.id)}
+									>
+										<Icon className="mt-0.5 size-4 shrink-0" />
+										<span>
+											<span className="block">{item.label}</span>
+											<span className="mt-1 hidden text-xs font-normal text-app-muted-fg lg:block">
+												{item.description}
+											</span>
+										</span>
+									</a>
+								);
+							})}
+						</div>
+					</nav>
+
+					<div className="min-w-0">
+						{activeSection === settingsSection.profile ? (
+							<ProfileSettings user={user} />
+						) : null}
+						{activeSection === settingsSection.account ? (
+							<EmailSettings
+								email={user?.email ?? ""}
+								verified={Boolean(user?.email_verified)}
+							/>
+						) : null}
+						{activeSection === settingsSection.trading ? (
+							<div className="grid gap-6">
+								<TradingProviderSettings
+									selectedProvider={user?.preferred_trading_provider ?? null}
+								/>
+								<WalletSettings
+									savedWallet={user?.primary_wallet_address ?? null}
+								/>
+							</div>
+						) : null}
+						{activeSection === settingsSection.security ? (
+							<PasswordSettings enabled={Boolean(user?.password_configured)} />
+						) : null}
+					</div>
 				</div>
 			</div>
 		</DashboardLayout>
+	);
+}
+
+function ProfileSettings({ user }: { user: AuthUser | null | undefined }) {
+	const accountName = user?.username ?? user?.email ?? "Uptions account";
+	const [username, setUsername] = useState(user?.username ?? "");
+	const updateUsername = useUpdateUsername();
+
+	useEffect(() => {
+		setUsername(user?.username ?? "");
+	}, [user?.username]);
+
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		try {
+			await updateUsername.mutateAsync({ username });
+			toast.success(user?.username ? "Username updated" : "Username added");
+		} catch (error) {
+			toast.error(getRequestErrorMessage(error, "Unable to save username"));
+		}
+	};
+
+	return (
+		<SettingsSection
+			description="Review the identity and trading details attached to your Uptions account."
+			icon={CircleUserRound}
+			title="Profile"
+		>
+			<div className="grid gap-6">
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+					<div className="size-20 shrink-0 overflow-hidden rounded-full border-2 border-primary/40 bg-app-muted p-1">
+						<Avatar
+							colors={["#ff6633", "#8b5cf6", "#22c55e", "#3b82f6", "#f59e0b"]}
+							name={accountName}
+							size="100%"
+							variant="beam"
+						/>
+					</div>
+					<div className="min-w-0">
+						<p className="truncate text-lg font-semibold text-app-fg">
+							{user?.username ? `@${user.username}` : "Username not set"}
+						</p>
+						<p className="mt-1 truncate text-sm text-app-muted-fg">
+							{user?.email ?? "No email connected"}
+						</p>
+					</div>
+				</div>
+				<div className="grid gap-px overflow-hidden border border-app-border bg-app-border sm:grid-cols-2">
+					<ProfileValue label="Username" value={user?.username ?? "Not set"} />
+					<ProfileValue label="Email" value={user?.email ?? "Not set"} />
+					<ProfileValue
+						label="Trading wallet"
+						value={shortAddress(user?.primary_wallet_address)}
+					/>
+					<ProfileValue
+						label="Trading provider"
+						value={formatProvider(user?.preferred_trading_provider)}
+					/>
+				</div>
+				<form
+					className="grid gap-4 border-t border-app-border pt-6"
+					onSubmit={handleSubmit}
+				>
+					<SettingsInput
+						autoComplete="username"
+						label={user?.username ? "Change username" : "Add username"}
+						maxLength={20}
+						minLength={3}
+						onChange={setUsername}
+						pattern="[A-Za-z][A-Za-z0-9_]*"
+						placeholder="your_username"
+						required
+						type="text"
+						value={username}
+					/>
+					<div className="flex flex-wrap items-center justify-between gap-3">
+						<p className="text-xs leading-5 text-app-muted-fg">
+							Use 3-20 characters. Start with a letter and use letters, numbers,
+							or underscores.
+						</p>
+						<Button
+							disabled={
+								updateUsername.isPending ||
+								username.trim().length < 3 ||
+								username.trim().toLowerCase() === user?.username
+							}
+							type="submit"
+						>
+							{updateUsername.isPending ? "Saving..." : "Save username"}
+						</Button>
+					</div>
+				</form>
+			</div>
+		</SettingsSection>
 	);
 }
 
@@ -203,6 +417,35 @@ function TradingProviderSettings({
 
 function WalletSettings({ savedWallet }: { savedWallet: string | null }) {
 	const { address, chainId, isConnected } = useAccount();
+	const updateWallet = useUpdateWallet();
+	const connectedWalletSaved =
+		Boolean(address) && address?.toLowerCase() === savedWallet?.toLowerCase();
+
+	const handleSaveWallet = async () => {
+		if (!address || !isConnected) {
+			toast.error("Connect the wallet you want to save");
+			return;
+		}
+
+		if (chainId !== 137) {
+			toast.error("Switch your wallet to Polygon");
+			return;
+		}
+
+		try {
+			await updateWallet.mutateAsync({
+				chain: supportedChain.polygon,
+				chain_id: 137,
+				provider: tradingProvider.polymarket,
+				wallet_address: address,
+			});
+			toast.success(
+				savedWallet ? "Trading wallet replaced" : "Trading wallet saved",
+			);
+		} catch (error) {
+			toast.error(getRequestErrorMessage(error, "Unable to save wallet"));
+		}
+	};
 
 	return (
 		<SettingsSection
@@ -219,7 +462,11 @@ function WalletSettings({ savedWallet }: { savedWallet: string | null }) {
 					<StatusValue
 						label="Network"
 						value={
-							chainId === 137 ? "Polygon" : chainId ? `Chain ${chainId}` : "—"
+							chainId === 137
+								? "Polygon"
+								: chainId
+									? `Chain ${chainId}`
+									: "Not available"
 						}
 					/>
 					<StatusValue label="Saved wallet" value={shortAddress(savedWallet)} />
@@ -228,9 +475,32 @@ function WalletSettings({ savedWallet }: { savedWallet: string | null }) {
 					<p className="text-xs text-app-muted-fg">
 						{address
 							? `Active wallet ${shortAddress(address)}`
-							: "Connect a Polygon wallet to trade and publish automations."}
+							: "Connect the Polygon wallet you want to use."}
 					</p>
-					<WalletConnectButton />
+					<WalletConnectButton syncWallet={false} />
+				</div>
+				<div className="flex flex-wrap items-center justify-between gap-3 border-t border-app-border pt-4">
+					<p className="max-w-xl text-xs leading-5 text-app-muted-fg">
+						Saving a different wallet requires a signature from that wallet.
+						Uptions uses the signature only to verify ownership.
+					</p>
+					<Button
+						disabled={
+							!address ||
+							!isConnected ||
+							chainId !== 137 ||
+							connectedWalletSaved ||
+							updateWallet.isPending
+						}
+						onClick={handleSaveWallet}
+						type="button"
+					>
+						{updateWallet.isPending
+							? "Waiting for signature..."
+							: savedWallet
+								? "Replace saved wallet"
+								: "Save connected wallet"}
+					</Button>
 				</div>
 			</div>
 		</SettingsSection>
@@ -325,12 +595,12 @@ function SettingsSection({
 }: {
 	children: ReactNode;
 	description: string;
-	icon: typeof Mail;
+	icon: LucideIcon;
 	title: string;
 }) {
 	return (
 		<section className="border border-app-border bg-app-card">
-			<div className="flex items-start gap-3 border-b border-app-border p-5">
+			<div className="flex items-start gap-3 border-b border-app-border p-5 sm:p-6">
 				<div className="grid size-10 shrink-0 place-items-center bg-app-muted text-primary">
 					<Icon className="size-5" />
 				</div>
@@ -343,7 +613,7 @@ function SettingsSection({
 					</Typography>
 				</div>
 			</div>
-			<div className="p-5">{children}</div>
+			<div className="p-5 sm:p-6">{children}</div>
 		</section>
 	);
 }
@@ -351,8 +621,10 @@ function SettingsSection({
 function SettingsInput({
 	autoComplete,
 	label,
+	maxLength,
 	minLength,
 	onChange,
+	pattern,
 	placeholder,
 	required,
 	type,
@@ -360,8 +632,10 @@ function SettingsInput({
 }: {
 	autoComplete: string;
 	label: string;
+	maxLength?: number;
 	minLength?: number;
 	onChange: (value: string) => void;
+	pattern?: string;
 	placeholder?: string;
 	required?: boolean;
 	type: "email" | "password" | "text";
@@ -375,14 +649,29 @@ function SettingsInput({
 			<input
 				autoComplete={autoComplete}
 				className="h-11 border border-app-border bg-app-muted px-3 text-sm text-app-fg outline-none focus:border-primary"
+				maxLength={maxLength}
 				minLength={minLength}
 				onChange={(event) => onChange(event.target.value)}
+				pattern={pattern}
 				placeholder={placeholder}
 				required={required}
 				type={type}
 				value={value}
 			/>
 		</label>
+	);
+}
+
+function ProfileValue({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="min-w-0 bg-app-muted p-4">
+			<p className="text-xs font-bold uppercase tracking-[0.1em] text-app-muted-fg">
+				{label}
+			</p>
+			<p className="mt-2 truncate text-sm font-semibold capitalize text-app-fg">
+				{value}
+			</p>
+		</div>
 	);
 }
 
@@ -397,10 +686,23 @@ function StatusValue({ label, value }: { label: string; value: string }) {
 	);
 }
 
+function parseSettingsSection(hash: string): SettingsSectionId {
+	const value = hash.replace("#", "");
+	return Object.values(settingsSection).includes(value as SettingsSectionId)
+		? (value as SettingsSectionId)
+		: settingsSection.profile;
+}
+
+function formatProvider(provider: string | null | undefined) {
+	return provider
+		? provider.split("_").join(" ").toLowerCase()
+		: "Not selected";
+}
+
 function shortAddress(address: string | null | undefined) {
 	if (!address) {
-		return "—";
+		return "Not available";
 	}
 
-	return `${address.slice(0, 6)}…${address.slice(-4)}`;
+	return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }

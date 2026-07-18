@@ -14,6 +14,7 @@ import type {
 	UpdateEmailRequest,
 	UpdatePasswordRequest,
 	UpdateTradingProviderRequest,
+	UpdateUsernameRequest,
 	UserTradingProviderResponse,
 	UserWalletResponse,
 	VenueConnection,
@@ -104,6 +105,13 @@ export class AuthService {
 			ApiResponse<SettingsUpdateResponse>,
 			UpdatePasswordRequest
 		>(API_ROUTES.users.settings.password, payload);
+	}
+
+	updateUsername(payload: UpdateUsernameRequest) {
+		return uptionsRequest.PATCH<ApiResponse<AuthUser>, UpdateUsernameRequest>(
+			API_ROUTES.users.settings.username,
+			payload,
+		);
 	}
 
 	updateTradingProvider(payload: UpdateTradingProviderRequest) {

@@ -39,6 +39,14 @@ export const API_ROUTES = {
 		reject: (approvalId: string) =>
 			route(`/mcp/approvals/${encodeURIComponent(approvalId)}/reject`),
 	},
+	markets: {
+		comments: (marketId: string) =>
+			route(`/markets/${encodeURIComponent(marketId)}/comments`),
+		commentStream: (marketId: string) =>
+			route(`/markets/${encodeURIComponent(marketId)}/comments/stream`),
+		favorite: (marketId: string) =>
+			route(`/markets/${encodeURIComponent(marketId)}/favorite`),
+	},
 	polymarket: {
 		market: (marketId: string) =>
 			route(`/polymarket/markets/${encodeURIComponent(marketId)}`),
@@ -63,6 +71,7 @@ export const API_ROUTES = {
 		settings: {
 			email: route("/users/settings/email"),
 			password: route("/users/settings/password"),
+			username: route("/users/settings/username"),
 		},
 		tradingProvider: route("/users/trading-provider"),
 		wallet: route("/users/wallet"),

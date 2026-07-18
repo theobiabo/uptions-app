@@ -1,16 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
 import Avatar from "boring-avatars";
-import {
-	ChevronDown,
-	LogOut,
-	Menu,
-	Settings,
-	UserRound,
-	Wallet,
-} from "lucide-react";
+import { ChevronDown, LogOut, Menu, Settings, UserRound } from "lucide-react";
 import { useMemo, useState } from "react";
-import { formatUnits } from "viem";
-import { useAccount, useBalance, useReadContract } from "wagmi";
+
 import { AuthPanel } from "@/components/auth/auth-panel";
 import { CustomModal } from "@/components/dialogs/custom-modal.tsx";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -23,14 +15,9 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet.tsx";
-import { providerAssets } from "@/components/wallet/provider-assets.ts";
+
 import { WalletConnectButton } from "@/components/wallet/wallet-connect-button.tsx";
-import {
-	erc20TradingAbi,
-	POLYGON_CHAIN_ID,
-	POLYGON_USDC_E_DECIMALS,
-	POLYMARKET_CONTRACTS,
-} from "@/constant/polymarket-contracts.ts";
+
 import { useCurrentUser, useLogout } from "@/hooks/use-auth.ts";
 import {
 	useApproveMcpApproval,
@@ -52,20 +39,6 @@ export default function DashboardHeader() {
 	const NotificationsIcon = dashboardActions.notificationsIcon;
 	const { user } = useCurrentUser();
 	const logout = useLogout();
-	const { address, isConnected } = useAccount();
-	const { data: polBalance, isLoading: polBalanceLoading } = useBalance({
-		address,
-		chainId: POLYGON_CHAIN_ID,
-		query: { enabled: Boolean(address && isConnected) },
-	});
-	const { data: usdcBalance, isLoading: usdcBalanceLoading } = useReadContract({
-		abi: erc20TradingAbi,
-		address: POLYMARKET_CONTRACTS.usdcE,
-		args: address ? [address] : undefined,
-		chainId: POLYGON_CHAIN_ID,
-		functionName: "balanceOf",
-		query: { enabled: Boolean(address && isConnected) },
-	});
 	const {
 		alerts,
 		error: alertsError,
@@ -80,7 +53,6 @@ export default function DashboardHeader() {
 	const [authOpen, setAuthOpen] = useState(false);
 	const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
 	const [logoutOpen, setLogoutOpen] = useState(false);
-	const [profileOpen, setProfileOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [selectedAlert, setSelectedAlert] = useState<AutomationAlert | null>(
 		null,
@@ -371,115 +343,13 @@ export default function DashboardHeader() {
 								<ChevronDown className="size-3.5 shrink-0 transition group-open:rotate-180" />
 							</summary>
 							<div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 border border-app-border bg-app-card p-1.5 shadow-xl">
-								<CustomModal
-									className="border-app-border bg-app-card p-0 text-app-fg sm:max-w-md"
-									onOpenChange={setProfileOpen}
-									open={profileOpen}
-									showHeader={false}
-									title="Profile"
-									trigger={
-										<button
-											className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs font-medium text-app-muted-fg transition hover:bg-app-muted hover:text-app-fg"
-											type="button"
-										>
-											<UserRound className="size-4" />
-											Profile
-										</button>
-									}
+								<a
+									className="flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-app-muted-fg no-underline transition hover:bg-app-muted hover:text-app-fg"
+									href="/dashboard"
 								>
-									<div className="border-b border-app-border px-6 py-8 text-center">
-										<div className="mx-auto size-24 overflow-hidden rounded-full border-2 border-primary/40 bg-app-muted p-1">
-											<Avatar
-												colors={[
-													"#ff6633",
-													"#8b5cf6",
-													"#22c55e",
-													"#3b82f6",
-													"#f59e0b",
-												]}
-												name={user.username ?? user.email ?? user.id}
-												size="100%"
-												variant="beam"
-											/>
-										</div>
-										<p className="mt-4 text-lg font-semibold text-app-fg">
-											@{user.username}
-										</p>
-										<p className="mt-1 truncate text-sm text-app-muted-fg">
-											{user.email}
-										</p>
-									</div>
-									<div className="grid gap-3 p-6">
-										<div className="flex items-center justify-between gap-4 border border-app-border bg-app-muted p-4">
-											<div className="flex min-w-0 items-center gap-3">
-												<Wallet className="size-5 shrink-0 text-primary" />
-												<div className="min-w-0">
-													<p className="text-xs text-app-muted-fg">
-														Polygon balances
-													</p>
-													<p className="mt-1 truncate text-sm font-semibold text-app-fg">
-														{usdcBalanceLoading
-															? "Loading USDC.e..."
-															: usdcBalance !== undefined
-																? `${Number(formatUnits(usdcBalance, POLYGON_USDC_E_DECIMALS)).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC.e trading`
-																: "Wallet not connected"}
-													</p>
-													<p className="mt-1 truncate text-xs font-medium text-app-muted-fg">
-														{polBalanceLoading
-															? "Loading POL..."
-															: polBalance
-																? `${Number(formatUnits(polBalance.value, polBalance.decimals)).toLocaleString(undefined, { maximumFractionDigits: 5 })} POL gas`
-																: "POL gas unavailable"}
-													</p>
-												</div>
-											</div>
-											<span
-												className={
-													isConnected
-														? "text-xs text-success"
-														: "text-xs text-app-muted-fg"
-												}
-											>
-												{isConnected ? "Connected" : "Disconnected"}
-											</span>
-										</div>
-										<div className="flex items-center justify-between gap-4 border border-app-border bg-app-muted p-4">
-											<div className="flex min-w-0 items-center gap-3">
-												{user.preferred_trading_provider ? (
-													<img
-														alt="Polymarket"
-														className="size-6 shrink-0 rounded-full object-cover"
-														src={
-															providerAssets[user.preferred_trading_provider]
-														}
-													/>
-												) : (
-													<span className="size-6 rounded-full bg-app-border" />
-												)}
-												<div>
-													<p className="text-xs text-app-muted-fg">
-														Connected provider
-													</p>
-													<p className="mt-1 text-sm font-semibold capitalize text-app-fg">
-														{user.preferred_trading_provider?.toLowerCase() ??
-															"None"}
-													</p>
-												</div>
-											</div>
-											<span className="text-xs text-app-muted-fg">Polygon</span>
-										</div>
-
-										<div>
-											<Button
-												className="w-full hover:bg-red-500/30 hover:text-red-600"
-												onClick={handleConfirmLogout}
-												variant="secondary"
-											>
-												Logout
-											</Button>
-										</div>
-									</div>
-								</CustomModal>
+									<UserRound className="size-4" />
+									Profile
+								</a>
 								<a
 									className="flex items-center gap-3 px-3 py-2.5 text-xs font-medium text-app-muted-fg no-underline transition hover:bg-app-muted hover:text-app-fg"
 									href="/settings"

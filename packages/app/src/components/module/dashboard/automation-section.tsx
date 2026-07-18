@@ -32,11 +32,11 @@ export function AutomationSection() {
 				</Typography>
 				<NewAutomationLink />
 			</div>
-			<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 				{isLoading ? (
 					<AutomationLoadingCards />
 				) : error ? (
-					<div className="border border-danger/40 bg-danger/10 p-5 sm:col-span-2 xl:col-span-3">
+					<div className="border border-danger/40 bg-danger/10 p-5 sm:col-span-2 xl:col-span-3 2xl:col-span-4">
 						<Typography className="text-danger" variant="h3">
 							Unable to load automations
 						</Typography>
@@ -51,7 +51,7 @@ export function AutomationSection() {
 				) : (
 					<NoDataFound
 						action={<NewAutomationLink />}
-						className="sm:col-span-2 xl:col-span-3"
+						className="sm:col-span-2 xl:col-span-3 2xl:col-span-4"
 						description="Create your first automation from the builder."
 						title="No automations found"
 					/>
@@ -101,53 +101,68 @@ function AutomationCard({ automation }: { automation: Automation }) {
 
 	return (
 		<>
-			<button
-				className="cursor-pointer border border-app-border bg-app-card p-5 text-left text-app-fg shadow-sm transition hover:border-primary/60"
-				onClick={() => setOpen(true)}
-				onKeyDown={(event) => {
-					if (event.key === "Enter" || event.key === " ") {
-						event.preventDefault();
-						setOpen(true);
-					}
-				}}
-				type="button"
-			>
-				<div className="flex items-start justify-between gap-4">
-					<div className="min-w-0">
-						<h3 className="truncate text-base font-semibold">
-							{automation.title}
-						</h3>
-						<p className="mt-1 line-clamp-2 text-sm text-app-muted-fg">
-							{marketLabel}
-						</p>
-					</div>
-					<span className="rounded-full bg-app-muted px-3 py-1 text-xs font-semibold capitalize text-primary">
+			<article className="group border border-app-border bg-app-card p-5 text-app-fg shadow-sm transition hover:border-primary/60 hover:shadow-md">
+				<div className="flex items-start justify-between gap-3">
+					<span
+						className={
+							isPaused
+								? "rounded-full bg-app-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-app-muted-fg"
+								: "rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-success"
+						}
+					>
 						{automation.status}
 					</span>
+					<button
+						aria-label={isPaused ? "Resume automation" : "Pause automation"}
+						aria-pressed={!isPaused}
+						className={`relative h-6 w-11 shrink-0 rounded-full transition ${isPaused ? "bg-app-border" : "bg-primary"}`}
+						disabled={setStatus.isPending}
+						onClick={(event) => {
+							event.stopPropagation();
+							handleSetStatus();
+						}}
+						type="button"
+					>
+						<span
+							className={`absolute top-1 size-4 rounded-full bg-white shadow transition ${isPaused ? "left-1" : "left-6"}`}
+						/>
+					</button>
 				</div>
-				<div className="mt-5 grid gap-3 text-sm text-app-muted-fg">
-					<AutomationMeta label="Venue" value={formatVenue(automation.venue)} />
-					<AutomationMeta
-						label="Published"
-						value={formatDate(automation.created_at)}
-					/>
-					<AutomationMeta
-						label="Updated"
-						value={formatDate(automation.updated_at)}
-					/>
-					<AutomationMeta
-						label="Last run"
-						value={
-							automation.last_run_at
-								? formatDate(automation.last_run_at)
-								: "Not run yet"
-						}
-					/>
-				</div>
-				<p className="mt-5 text-sm font-semibold text-primary">
-					View automation
-				</p>
-			</button>
+				<button
+					aria-label={`View ${automation.title}`}
+					className="block w-full cursor-pointer text-left"
+					onClick={() => setOpen(true)}
+					type="button"
+				>
+					<h3 className="mt-5 line-clamp-2 min-h-12 text-base font-semibold leading-6">
+						{automation.title}
+					</h3>
+					<p className="mt-2 line-clamp-2 min-h-10 text-sm text-app-muted-fg">
+						{marketLabel}
+					</p>
+					<div className="mt-5 grid gap-3 border-t border-app-border pt-4 text-xs text-app-muted-fg">
+						<AutomationMeta
+							label="Last triggered"
+							value={
+								automation.last_run_at
+									? formatDate(automation.last_run_at)
+									: "Not triggered yet"
+							}
+						/>
+						<AutomationMeta
+							label="Last status"
+							value={automation.last_run_status ?? "No runs"}
+						/>
+						<AutomationMeta
+							label="Provider"
+							value={formatVenue(automation.venue)}
+						/>
+					</div>
+					<p className="mt-5 text-sm font-semibold text-primary transition group-hover:translate-x-0.5">
+						View details
+					</p>
+				</button>
+			</article>
 			<CustomModal
 				className="max-h-[85dvh] overflow-y-auto border-app-border bg-app-card text-app-fg sm:max-w-150"
 				description="Review the saved workflow, manage its status, or edit it in the builder."
@@ -334,7 +349,9 @@ function DateMetric({ label, value }: { label: string; value: string | null }) {
 			<Typography className="text-app-muted-fg" variant="caption">
 				{label}
 			</Typography>
-			<p className="mt-1 text-sm font-semibold text-app-fg">{value ?? "—"}</p>
+			<p className="mt-1 text-sm font-semibold text-app-fg">
+				{value ?? "Not available"}
+			</p>
 		</div>
 	);
 }
@@ -349,7 +366,9 @@ function AutomationMeta({
 	return (
 		<div className="flex items-center justify-between gap-4">
 			<span>{label}</span>
-			<span className="font-medium capitalize text-app-fg">{value ?? "—"}</span>
+			<span className="truncate font-medium capitalize text-app-fg">
+				{value ?? "Not available"}
+			</span>
 		</div>
 	);
 }
@@ -359,6 +378,7 @@ function AutomationLoadingCards() {
 		"automation-loading-1",
 		"automation-loading-2",
 		"automation-loading-3",
+		"automation-loading-4",
 	].map((key) => (
 		<div
 			className="h-64 animate-pulse border border-app-border bg-app-muted"

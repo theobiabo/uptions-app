@@ -25,7 +25,8 @@ export function DashboardLayout({
 				className,
 			)}
 		>
-			<DashboardHeader />
+      <DashboardHeader />
+
 			<TradingProviderModal />
 			<div className={cn("w-full flex-1", contentClassName)}>{children}</div>
 		</main>
